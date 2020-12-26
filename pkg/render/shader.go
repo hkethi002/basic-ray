@@ -19,7 +19,7 @@ func SpecularShader(lightVector, receiveVector geometry.Vector, triangle *geomet
 	return SpecularRatio(lightVector, receiveVector, normalVector, triangle.SpecularAlbedo)
 }
 
-func DiffuesShader(receiveVector geometry.Vector, lightVectors []Photon, triangle *geometry.Triangle) Photon {
+func DiffuseShader(receiveVector geometry.Vector, lightVectors []*Photon, triangle *geometry.Triangle) Photon {
 	_ = triangle.GetNormal()
 	totalReflected := Photon{vector: receiveVector}
 	for _, lightVector := range lightVectors {

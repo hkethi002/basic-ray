@@ -39,3 +39,7 @@ func Add(vectorA, vectorB Vector) Vector {
 func CreateVector(pointA, pointB Point) Vector {
 	return Vector{pointA[0] - pointB[0], pointA[1] - pointB[1], pointA[2] - pointB[2]}
 }
+
+func Distance(pointA, pointB Point) float64 {
+	return Magnitude(CreateVector(pointA, pointB))
+}

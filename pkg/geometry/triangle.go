@@ -1,8 +1,8 @@
 package geometry
 
 func (triangle *Triangle) GetNormal() Vector {
-	edge1 := CreateVector(triangle.vertex1, triangle.vertex0)
-	edge2 := CreateVector(triangle.vertex2, triangle.vertex0)
+	edge1 := CreateVector(triangle.Vertex1, triangle.Vertex0)
+	edge2 := CreateVector(triangle.Vertex2, triangle.Vertex0)
 
 	normal := CrossProduct(edge1, edge2)
 	return normal
@@ -25,19 +25,23 @@ func GetIntersection(ray *Ray, triangle *Triangle) *Point {
 		return nil
 	}
 
-	d := DotProduct(CreateVector(triangle.vertex0, ray.Origin), normal) / cos
+	d := DotProduct(CreateVector(triangle.Vertex0, ray.Origin), normal) / cos
+	if d < epsilon {
+		return nil // I think this means point is in wrong direction
+	}
+
 	potentialPoint := getLinePoint(ray, d)
 
 	var subTriangle *Triangle
 	subTriangleArea := 0.0
 
-	subTriangle = &Triangle{vertex0: triangle.vertex0, vertex1: triangle.vertex1, vertex2: potentialPoint}
+	subTriangle = &Triangle{Vertex0: triangle.Vertex0, Vertex1: triangle.Vertex1, Vertex2: potentialPoint}
 	subTriangleArea += subTriangle.GetArea()
 
-	subTriangle.vertex0 = triangle.vertex2
+	subTriangle.Vertex0 = triangle.Vertex2
 	subTriangleArea += subTriangle.GetArea()
 
-	subTriangle.vertex1 = triangle.vertex0
+	subTriangle.Vertex1 = triangle.Vertex0
 	subTriangleArea += subTriangle.GetArea()
 
 	if subTriangleArea-triangle.GetArea() < epsilon {

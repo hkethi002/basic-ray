@@ -1,12 +1,11 @@
 package io
 
 import (
+	render "basic-ray/pkg/render"
 	"bufio"
 	"fmt"
 	"os"
 )
-
-type Image [][][3]int
 
 func check(err error) {
 	if err != nil {
@@ -14,7 +13,8 @@ func check(err error) {
 	}
 }
 
-func Write(image Image, filePath string) {
+func Write(camera *render.Camera, filePath string) {
+	image := *camera.Pixels
 	fileObject, err := os.Create(filePath)
 	check(err)
 	defer fileObject.Close()
@@ -26,35 +26,9 @@ func Write(image Image, filePath string) {
 	writer.WriteString("255\n")
 	for _, i := range image {
 		for _, j := range i {
-			writer.WriteString(fmt.Sprintf("%d %d %d ", j[0], j[1], j[2]))
+			writer.WriteString(fmt.Sprintf("%d %d %d ", int64(j[0]), int64(j[1]), int64(j[2])))
 		}
 		writer.WriteString("\n")
 	}
 	writer.Flush()
-}
-
-func main() {
-	image := [][][3]int{
-		[][3]int{
-			[3]int{255, 0, 0},
-			[3]int{255, 0, 0},
-			[3]int{255, 0, 0},
-		},
-		[][3]int{
-			[3]int{0, 255, 0},
-			[3]int{0, 255, 0},
-			[3]int{0, 255, 0},
-		},
-		[][3]int{
-			[3]int{0, 0, 255},
-			[3]int{0, 0, 255},
-			[3]int{0, 0, 255},
-		},
-		[][3]int{
-			[3]int{255, 0, 255},
-			[3]int{90, 90, 25},
-			[3]int{80, 10, 55},
-		},
-	}
-	Write(image, "image.ppm")
 }
