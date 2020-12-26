@@ -4,7 +4,6 @@ import (
 	geometry "basic-ray/pkg/geometry"
 	myio "basic-ray/pkg/io"
 	render "basic-ray/pkg/render"
-	"fmt"
 )
 
 func main() {
