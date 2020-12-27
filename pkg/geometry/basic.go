@@ -19,6 +19,7 @@ type Triangle struct {
 	Vertex0 Point
 	Vertex1 Point
 	Vertex2 Point
+	Normal  *Vector
 	// Albedo are [0, 1] per rgb color
 	DiffuseAlbedo      [3]float64
 	SpecularAlbedo     [3]float64

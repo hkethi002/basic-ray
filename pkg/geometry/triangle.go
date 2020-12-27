@@ -1,6 +1,9 @@
 package geometry
 
 func (triangle *Triangle) GetNormal() Vector {
+	if triangle.Normal != nil {
+		return *triangle.Normal
+	}
 	edge1 := CreateVector(triangle.Vertex1, triangle.Vertex0)
 	edge2 := CreateVector(triangle.Vertex2, triangle.Vertex0)
 
