@@ -29,3 +29,21 @@ type Triangle struct {
 
 	MaterialType int
 }
+
+type TextureProperties struct {
+	DiffuseAlbedo      [3]float64 `json:"diffuse"`
+	SpecularAlbedo     [3]float64 `json:"specular"`
+	TranslucenseAlbedo [3]float64 `json:"translucense"`
+	// What angle the light changes at
+	RefractionIndex float64 `json:"refraction_index"`
+	MaterialType    int     `json:"material_type"`
+}
+
+type Object struct {
+	Vertexes [][3]float64        `json:"vertexes"`
+	Faces    [][]int             `json:"faces"`
+	Normals  [][3]float64        `json:"normals"`
+	Textures []TextureProperties `json:"textures"`
+	// Maps faces (index) to texture (value is the index in the properties list)
+	TextureMap []int `json:"texture_map"`
+}

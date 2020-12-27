@@ -10,7 +10,7 @@ func Main(origin geometry.Point, lightSource *LightSource, camera *Camera, trian
 		for j, _ := range row {
 			ray := geometry.Ray{
 				Origin: origin,
-				Vector: geometry.CreateVector(GetPoint(camera, i, j), origin),
+				Vector: geometry.Normalize(geometry.CreateVector(GetPoint(camera, i, j), origin)),
 			}
 			(*camera.Pixels)[i][j] = Trace(&ray, triangles, lightSource, 0).rgb
 		}
@@ -39,6 +39,7 @@ func Trace(ray *geometry.Ray, triangles []*geometry.Triangle, lightSource *Light
 
 		photon = GetColor(ray, collision, triangle, lightSource, triangles, depth)
 	}
+
 	return photon
 }
 
