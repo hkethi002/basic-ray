@@ -21,7 +21,7 @@ func main() {
 	camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 1280, 720)
 
 	// rgb := render.Color{.18, 0, .18}
-	lightSource := &render.DirectionalLight{Direction: geometry.Vector{1, -1, -1}, RGB: render.Color{1800, 0, 1800}, Intensity: 1000}
+	lightSource := &render.DirectionalLight{Direction: geometry.Vector{5, -1, -1}, RGB: render.Color{1000, 1000, 1000}}
 	object, err := myio.ReadObject("cube.json")
 	check(err)
 	// triangleBlue := &geometry.Triangle{
