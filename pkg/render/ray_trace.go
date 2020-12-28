@@ -2,12 +2,14 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
-	_ "fmt"
+	pb "github.com/cheggaaa/pb/v3"
 	"math"
 )
 
 func Main(origin geometry.Point, lightSources []LightSource, camera *Camera, triangles []*geometry.Triangle) {
 	var light Photon
+	bar := pb.StartNew(len(*camera.Pixels) * len((*camera.Pixels)[0]))
+
 	for i, row := range *camera.Pixels {
 		for j, _ := range row {
 			ray := geometry.Ray{
@@ -16,14 +18,58 @@ func Main(origin geometry.Point, lightSources []LightSource, camera *Camera, tri
 			}
 			light = Trace(&ray, triangles, lightSources, 0)
 			(*camera.Pixels)[i][j] = light.rgb // GetWeightedColor()
+			bar.Increment()
+		}
+	}
+	bar.Finish()
+}
+
+func MultiThreadedMain(origin geometry.Point, lightSources []LightSource, camera *Camera, triangles []*geometry.Triangle) {
+	progress := make(chan bool, 20)
+	totalCount := len(*camera.Pixels) * len((*camera.Pixels)[0])
+	bar := pb.StartNew(totalCount)
+	go renderPixels(origin, triangles, lightSources, camera, progress)
+	reportProgress(bar, progress, totalCount)
+	close(progress)
+	bar.Finish()
+
+}
+
+func reportProgress(bar *pb.ProgressBar, progress <-chan bool, totalCount int) {
+	for i := 0; i < totalCount; i++ {
+		<-progress
+		bar.Increment()
+	}
+}
+
+func renderPixels(origin geometry.Point, triangles []*geometry.Triangle, lightSources []LightSource, camera *Camera, progress chan<- bool) {
+	jobs := make(chan bool, 5)
+	for i, row := range *camera.Pixels {
+		for j, _ := range row {
+			jobs <- true
+			ray := geometry.Ray{
+				Origin: origin,
+				Vector: geometry.Normalize(geometry.CreateVector(GetPoint(camera, i, j), origin)),
+			}
+			go renderPixel(&ray, triangles, lightSources, camera, i, j, progress, jobs)
 		}
 	}
 }
 
+func renderPixel(ray *geometry.Ray, triangles []*geometry.Triangle, lightSources []LightSource, camera *Camera, i, j int, progress chan<- bool, jobs <-chan bool) {
+	light := Trace(ray, triangles, lightSources, 0)
+	(*camera.Pixels)[i][j] = light.rgb // GetWeightedColor()
+	// complete job
+	<-jobs
+	// report progress
+	progress <- true
+}
+
 func Trace(ray *geometry.Ray, triangles []*geometry.Triangle, lightSources []LightSource, depth int) Photon {
+	receiveVector := geometry.Normalize(geometry.ScalarProduct(ray.Vector, -1))
+	photon := Photon{vector: receiveVector}
 	closestPoint := float64(math.Inf(1))
-	var photon Photon
-	if depth >= 4 {
+	if depth >= 3 {
 		return photon
 	}
 	for _, triangle := range triangles {
@@ -62,9 +108,12 @@ func GetColor(
 	case geometry.DIFFUSE:
 		photons := GetDirectLight(reflectionPoint, triangles, lightSources)
 		sampleRays := geometry.MakeSampleRays(reflectionPoint, triangle.GetNormal(), 16)
-		var photon Photon
+		photon := Photon{vector: receiveVector}
 		for _, sampleRay := range sampleRays {
 			photon = Trace(sampleRay, triangles, lightSources, depth+1)
+			photon.rgb[0] = photon.rgb[0] / 16
+			photon.rgb[1] = photon.rgb[1] / 16
+			photon.rgb[2] = photon.rgb[2] / 16
 			photons = append(photons, &photon)
 		}
 
@@ -72,5 +121,5 @@ func GetColor(
 
 	}
 
-	return Photon{}
+	return Photon{vector: receiveVector}
 }

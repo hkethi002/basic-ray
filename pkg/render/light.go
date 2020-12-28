@@ -55,6 +55,13 @@ func GetReflectiveVector(incedentVector geometry.Vector, triangle *geometry.Tria
 	return reflectionVector
 }
 
+func GetRefractedVector(incedentVector geometry.Vector, triangle *geometry.Triangle) geometry.Vector {
+	normalVector := triangle.GetNormal()
+	incedentVector = geometry.Normalize(incedentVector)
+	c1 := geometry.DotProduct(normalVector, incedentVector)
+	return geometry.Subtract(geometry.ScalarProduct(incedentVector, triangle.RefractionIndex), geometry.ScalarProduct(normalVector, (triangle.RefractionIndex*c1)))
+}
+
 func getDirectLightFromSingleSource(destination geometry.Point, triangles []*geometry.Triangle, lightSource LightSource) *Photon {
 	lightDistance := lightSource.GetDistance(destination)
 	photon := lightSource.GetPhoton(destination)

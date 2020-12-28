@@ -40,6 +40,7 @@ func DiffuseShader(receiveVector geometry.Vector, photons []*Photon, triangle *g
 			totalCollected.rgb[1],
 			totalCollected.rgb[2],
 		},
+		vector: receiveVector,
 	}
 	return totalReflected
 }

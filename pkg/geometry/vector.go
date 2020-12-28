@@ -43,3 +43,7 @@ func CreateVector(pointA, pointB Point) Vector {
 func Distance(pointA, pointB Point) float64 {
 	return Magnitude(CreateVector(pointA, pointB))
 }
+
+func Translate(point Point, vector Vector) Point {
+	return Point{point[0] + vector[0], point[1] + vector[1], point[2] + vector[2]}
+}

@@ -18,8 +18,8 @@ func main() {
 	bottomLeftCorner := geometry.Point{-2.5, -1.40625, -2}
 	bottomRightCorner := geometry.Point{2.5, -1.40625, -2}
 	topLeftCorner := geometry.Point{-2.5, 1.40625, -2}
-	// camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 1280, 720)
-	camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 2560, 1440)
+	camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 1280, 720)
+	// camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 256, 144)
 
 	// rgb := render.Color{.18, 0, .18}
 	lightSource := &render.DirectionalLight{Direction: geometry.Vector{4, -1, -3}, RGB: render.Color{2000, 2000, 2000}}
@@ -42,9 +42,12 @@ func main() {
 	for i, t := range triangles {
 		t.Id = i
 	}
-	fmt.Println(triangles[14].Normal)
+	fmt.Println("Starting Ray Tracing...")
 
-	render.Main(eye, []render.LightSource{lightSource}, camera, triangles)
+	// render.Main(eye, []render.LightSource{lightSource}, camera, triangles)
+	render.MultiThreadedMain(eye, []render.LightSource{lightSource}, camera, triangles)
+
+	fmt.Println("finished, writing image...")
 
 	myio.Write(camera, "output.ppm")
 
