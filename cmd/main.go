@@ -15,12 +15,13 @@ func check(err error) {
 
 func main() {
 	eye := geometry.Point{0, 0, 0}
-	bottomLeftCorner := geometry.Point{-2.5, -1.40625, -.5}
-	bottomRightCorner := geometry.Point{2.5, -1.40625, -.5}
-	topLeftCorner := geometry.Point{-2.5, 1.40625, -.5}
-	camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 256, 144)
+	bottomLeftCorner := geometry.Point{-2.5, -1.40625, -2}
+	bottomRightCorner := geometry.Point{2.5, -1.40625, -2}
+	topLeftCorner := geometry.Point{-2.5, 1.40625, -2}
+	camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 1280, 720)
 
-	lightSource := &render.LightSource{Location: geometry.Point{0, 5, 0}, RGB: render.Color{255, 255, 255}}
+	// rgb := render.Color{.18, 0, .18}
+	lightSource := &render.DirectionalLight{Direction: geometry.Vector{1, -1, -1}, RGB: render.Color{1800, 0, 1800}, Intensity: 1000}
 	object, err := myio.ReadObject("cube.json")
 	check(err)
 	// triangleBlue := &geometry.Triangle{

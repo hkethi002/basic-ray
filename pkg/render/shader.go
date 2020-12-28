@@ -2,6 +2,7 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
+	"fmt"
 )
 
 func SpecularRatio(incedentVector, receiveVector, normalVector geometry.Vector, specularAlbedo [3]float64) [3]float64 {
@@ -19,14 +20,31 @@ func SpecularShader(lightVector, receiveVector geometry.Vector, triangle *geomet
 	return SpecularRatio(lightVector, receiveVector, normalVector, triangle.SpecularAlbedo)
 }
 
-func DiffuseShader(receiveVector geometry.Vector, lightVectors []*Photon, triangle *geometry.Triangle) Photon {
-	// normalVector := triangle.GetNormal()
-	totalReflected := Photon{vector: receiveVector}
-	for _, lightVector := range lightVectors {
-		totalReflected.rgb[0] += lightVector.rgb[0] * triangle.DiffuseAlbedo[0]
-		totalReflected.rgb[1] += lightVector.rgb[1] * triangle.DiffuseAlbedo[1]
-		totalReflected.rgb[2] += lightVector.rgb[2] * triangle.DiffuseAlbedo[2]
+func DiffuseShader(receiveVector geometry.Vector, photons []*Photon, triangle *geometry.Triangle) Photon {
+	normalVector := triangle.GetNormal() // Should already be normalized
+	totalCollected := Photon{vector: receiveVector}
+	totalIncedentLight := float64(0)
+	// facingAngleFactor := geometry.DotProduct(normalVector, receiveVector)
+	for _, photon := range photons {
+		angleFactor := geometry.DotProduct(normalVector, photon.vector)
+		totalCollected.rgb[0] += photon.rgb[0] * angleFactor
+		totalCollected.rgb[1] += photon.rgb[1] * angleFactor
+		totalCollected.rgb[2] += photon.rgb[2] * angleFactor
 	}
+	pi := 3.1415926538
+	totalCollected.rgb[0] *= triangle.DiffuseAlbedo[0] / pi
+	totalCollected.rgb[1] *= triangle.DiffuseAlbedo[1] / pi
+	totalCollected.rgb[2] *= triangle.DiffuseAlbedo[2] / pi
+	totalReflected := Photon{
+		rgb: Color{
+			totalCollected.rgb[0],
+			totalCollected.rgb[1],
+			totalCollected.rgb[2],
+		},
+		lightIntensity: totalIncedentLight,
+	}
+	fmt.Println(totalReflected.lightIntensity)
+	fmt.Println(totalReflected.rgb)
 	return totalReflected
 }
 

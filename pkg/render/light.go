@@ -2,22 +2,56 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
+	"math"
 )
 
 type Color [3]float64
 
 type Photon struct {
-	vector geometry.Vector
-	rgb    Color
+	vector         geometry.Vector
+	lightIntensity float64
+	rgb            Color
 }
 
-type LightSource struct {
-	Location geometry.Point
-	RGB      Color
+func (photon *Photon) GetWeightedColor() Color {
+	return Color{
+		photon.rgb[0] * photon.lightIntensity,
+		photon.rgb[1] * photon.lightIntensity,
+		photon.rgb[2] * photon.lightIntensity,
+	}
 }
 
-func (lightSource *LightSource) GetPhoton(destination geometry.Point) Photon {
-	return Photon{vector: geometry.Normalize(geometry.CreateVector(destination, lightSource.Location)), rgb: lightSource.RGB}
+type LightSource interface {
+	GetPhoton(destination geometry.Point) Photon
+	GetDistance(destination geometry.Point) float64
+}
+
+type DeltaLight struct {
+	Location  geometry.Point
+	Intensity float64
+	RGB       Color
+}
+
+type DirectionalLight struct {
+	Direction geometry.Vector
+	Intensity float64
+	RGB       Color
+}
+
+func (lightSource *DeltaLight) GetPhoton(destination geometry.Point) Photon {
+	return Photon{vector: geometry.Normalize(geometry.CreateVector(destination, lightSource.Location)), rgb: lightSource.RGB, lightIntensity: lightSource.Intensity}
+}
+
+func (lightSource *DeltaLight) GetDistance(destination geometry.Point) float64 {
+	return geometry.Distance(destination, lightSource.Location)
+}
+
+func (lightSource *DirectionalLight) GetPhoton(destination geometry.Point) Photon {
+	return Photon{vector: geometry.Normalize(lightSource.Direction), rgb: lightSource.RGB, lightIntensity: lightSource.Intensity}
+}
+
+func (lightSource *DirectionalLight) GetDistance(destination geometry.Point) float64 {
+	return float64(math.Inf(1))
 }
 
 func GetReflectiveVector(incedentVector geometry.Vector, triangle *geometry.Triangle) geometry.Vector {
@@ -32,10 +66,10 @@ func GetReflectiveVector(incedentVector geometry.Vector, triangle *geometry.Tria
 	return reflectionVector
 }
 
-func GetDirectLight(destination geometry.Point, triangles []*geometry.Triangle, lightSource *LightSource) *Photon {
-	lightDistance := geometry.Distance(destination, lightSource.Location)
-	ray := &geometry.Ray{Origin: destination, Vector: geometry.CreateVector(lightSource.Location, destination)}
-	var photon Photon
+func GetDirectLight(destination geometry.Point, triangles []*geometry.Triangle, lightSource LightSource) *Photon {
+	lightDistance := lightSource.GetDistance(destination)
+	photon := lightSource.GetPhoton(destination)
+	ray := &geometry.Ray{Origin: destination, Vector: geometry.ScalarProduct(photon.vector, -1)}
 	for _, triangle := range triangles {
 		intersects := geometry.GetIntersection(ray, triangle)
 		if intersects == nil {
@@ -47,6 +81,5 @@ func GetDirectLight(destination geometry.Point, triangles []*geometry.Triangle, 
 		}
 		return nil
 	}
-	photon = lightSource.GetPhoton(destination)
 	return &photon
 }

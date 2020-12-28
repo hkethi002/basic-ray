@@ -2,22 +2,25 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
+	_ "fmt"
 	"math"
 )
 
-func Main(origin geometry.Point, lightSource *LightSource, camera *Camera, triangles []*geometry.Triangle) {
+func Main(origin geometry.Point, lightSource LightSource, camera *Camera, triangles []*geometry.Triangle) {
+	var light Photon
 	for i, row := range *camera.Pixels {
 		for j, _ := range row {
 			ray := geometry.Ray{
 				Origin: origin,
 				Vector: geometry.Normalize(geometry.CreateVector(GetPoint(camera, i, j), origin)),
 			}
-			(*camera.Pixels)[i][j] = Trace(&ray, triangles, lightSource, 0).rgb
+			light = Trace(&ray, triangles, lightSource, 0)
+			(*camera.Pixels)[i][j] = light.rgb // GetWeightedColor()
 		}
 	}
 }
 
-func Trace(ray *geometry.Ray, triangles []*geometry.Triangle, lightSource *LightSource, depth int) Photon {
+func Trace(ray *geometry.Ray, triangles []*geometry.Triangle, lightSource LightSource, depth int) Photon {
 	closestPoint := float64(math.Inf(1))
 	var photon Photon
 	if depth >= 4 {
@@ -47,11 +50,11 @@ func GetColor(
 	ray *geometry.Ray,
 	reflectionPoint geometry.Point,
 	triangle *geometry.Triangle,
-	lightSource *LightSource,
+	lightSource LightSource,
 	triangles []*geometry.Triangle,
 	depth int,
 ) Photon {
-	receiveVector := geometry.ScalarProduct(ray.Vector, -1)
+	receiveVector := geometry.Normalize(geometry.ScalarProduct(ray.Vector, -1))
 	switch triangle.MaterialType {
 	case geometry.REFLECTIVE:
 		reflectionRay := &geometry.Ray{Origin: reflectionPoint, Vector: GetReflectiveVector(ray.Vector, triangle)}
