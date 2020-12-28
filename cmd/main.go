@@ -22,8 +22,9 @@ func main() {
 	// camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 256, 144)
 
 	// rgb := render.Color{.18, 0, .18}
-	lightSource := &render.DirectionalLight{Direction: geometry.Vector{4, -1, -3}, RGB: render.Color{2000, 2000, 2000}}
-	// pointLightSource := &render.DeltaLight{Location: geometry.Point{0, 2, 0}, RGB: render.Color{1000, 1000, 1000}}
+	// lightSource := &render.DirectionalLight{Direction: geometry.Vector{4, -1, -3}, RGB: render.Color{2000, 2000, 2000}}
+	lightSource := &render.DeltaLight{Location: geometry.Point{-2, 2, 0}, RGB: render.Color{10000, 10000, 10000}}
+	lightSource2 := &render.DeltaLight{Location: geometry.Point{2, 0.5, -1}, RGB: render.Color{5000, 5000, 5000}}
 	object, err := myio.ReadObject("cube.json")
 	check(err)
 	// triangleBlue := &geometry.Triangle{
@@ -45,7 +46,7 @@ func main() {
 	fmt.Println("Starting Ray Tracing...")
 
 	// render.Main(eye, []render.LightSource{lightSource}, camera, triangles)
-	render.MultiThreadedMain(eye, []render.LightSource{lightSource}, camera, triangles)
+	render.MultiThreadedMain(eye, []render.LightSource{lightSource, lightSource2}, camera, triangles)
 
 	fmt.Println("finished, writing image...")
 

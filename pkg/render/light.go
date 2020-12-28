@@ -28,7 +28,14 @@ type DirectionalLight struct {
 }
 
 func (lightSource *DeltaLight) GetPhoton(destination geometry.Point) Photon {
-	return Photon{vector: geometry.Normalize(geometry.CreateVector(destination, lightSource.Location)), rgb: lightSource.RGB}
+	fallOff := math.Pow(lightSource.GetDistance(destination), 2)
+	rgb := Color{
+		lightSource.RGB[0] / fallOff,
+		lightSource.RGB[1] / fallOff,
+		lightSource.RGB[2] / fallOff,
+	}
+
+	return Photon{vector: geometry.Normalize(geometry.CreateVector(destination, lightSource.Location)), rgb: rgb}
 }
 
 func (lightSource *DeltaLight) GetDistance(destination geometry.Point) float64 {

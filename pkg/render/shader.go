@@ -30,7 +30,7 @@ func DiffuseShader(receiveVector geometry.Vector, photons []*Photon, triangle *g
 		totalCollected.rgb[1] += photon.rgb[1] * angleFactor
 		totalCollected.rgb[2] += photon.rgb[2] * angleFactor
 	}
-	pi := 3.1415926538
+	pi := 2 * 3.1415926538 / 2
 	totalCollected.rgb[0] *= triangle.DiffuseAlbedo[0] / pi
 	totalCollected.rgb[1] *= triangle.DiffuseAlbedo[1] / pi
 	totalCollected.rgb[2] *= triangle.DiffuseAlbedo[2] / pi

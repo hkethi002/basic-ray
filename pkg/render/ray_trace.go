@@ -2,6 +2,7 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
+	_ "fmt"
 	pb "github.com/cheggaaa/pb/v3"
 	"math"
 )
@@ -107,15 +108,17 @@ func GetColor(
 		return Trace(reflectionRay, triangles, lightSources, depth+1)
 	case geometry.DIFFUSE:
 		photons := GetDirectLight(reflectionPoint, triangles, lightSources)
-		sampleRays := geometry.MakeSampleRays(reflectionPoint, triangle.GetNormal(), 16)
-		photon := Photon{vector: receiveVector}
-		for _, sampleRay := range sampleRays {
-			photon = Trace(sampleRay, triangles, lightSources, depth+1)
-			photon.rgb[0] = photon.rgb[0] / 16
-			photon.rgb[1] = photon.rgb[1] / 16
-			photon.rgb[2] = photon.rgb[2] / 16
-			photons = append(photons, &photon)
-		}
+		// sampleRays := geometry.MakeSampleRays(reflectionPoint, triangle.GetNormal(), 16)
+		// photon := Photon{vector: receiveVector}
+		// for _, sampleRay := range sampleRays {
+		// 	photon = Trace(sampleRay, triangles, lightSources, depth+1)
+		// 	distance := geometry.Distance(ray.Origin, reflectionPoint)
+		// 	d2 := distance * distance
+		// 	photon.rgb[0] = photon.rgb[0] / d2
+		// 	photon.rgb[1] = photon.rgb[1] / d2
+		// 	photon.rgb[2] = photon.rgb[2] / d2
+		// 	photons = append(photons, &photon)
+		// }
 
 		return DiffuseShader(receiveVector, photons, triangle)
 
