@@ -6,7 +6,7 @@ import (
 	"math"
 )
 
-func Main(origin geometry.Point, lightSource LightSource, camera *Camera, triangles []*geometry.Triangle) {
+func Main(origin geometry.Point, lightSources []LightSource, camera *Camera, triangles []*geometry.Triangle) {
 	var light Photon
 	for i, row := range *camera.Pixels {
 		for j, _ := range row {
@@ -14,13 +14,13 @@ func Main(origin geometry.Point, lightSource LightSource, camera *Camera, triang
 				Origin: origin,
 				Vector: geometry.Normalize(geometry.CreateVector(GetPoint(camera, i, j), origin)),
 			}
-			light = Trace(&ray, triangles, lightSource, 0)
+			light = Trace(&ray, triangles, lightSources, 0)
 			(*camera.Pixels)[i][j] = light.rgb // GetWeightedColor()
 		}
 	}
 }
 
-func Trace(ray *geometry.Ray, triangles []*geometry.Triangle, lightSource LightSource, depth int) Photon {
+func Trace(ray *geometry.Ray, triangles []*geometry.Triangle, lightSources []LightSource, depth int) Photon {
 	closestPoint := float64(math.Inf(1))
 	var photon Photon
 	if depth >= 4 {
@@ -40,7 +40,7 @@ func Trace(ray *geometry.Ray, triangles []*geometry.Triangle, lightSource LightS
 			continue
 		}
 
-		photon = GetColor(ray, collision, triangle, lightSource, triangles, depth)
+		photon = GetColor(ray, collision, triangle, lightSources, triangles, depth)
 	}
 
 	return photon
@@ -50,7 +50,7 @@ func GetColor(
 	ray *geometry.Ray,
 	reflectionPoint geometry.Point,
 	triangle *geometry.Triangle,
-	lightSource LightSource,
+	lightSources []LightSource,
 	triangles []*geometry.Triangle,
 	depth int,
 ) Photon {
@@ -58,17 +58,13 @@ func GetColor(
 	switch triangle.MaterialType {
 	case geometry.REFLECTIVE:
 		reflectionRay := &geometry.Ray{Origin: reflectionPoint, Vector: GetReflectiveVector(ray.Vector, triangle)}
-		return Trace(reflectionRay, triangles, lightSource, depth+1)
+		return Trace(reflectionRay, triangles, lightSources, depth+1)
 	case geometry.DIFFUSE:
-		directLight := GetDirectLight(reflectionPoint, triangles, lightSource)
-		photons := make([]*Photon, 0)
-		if directLight != nil {
-			photons = append(photons, directLight)
-		}
+		photons := GetDirectLight(reflectionPoint, triangles, lightSources)
 		sampleRays := geometry.MakeSampleRays(reflectionPoint, triangle.GetNormal(), 16)
 		var photon Photon
 		for _, sampleRay := range sampleRays {
-			photon = Trace(sampleRay, triangles, lightSource, depth+1)
+			photon = Trace(sampleRay, triangles, lightSources, depth+1)
 			photons = append(photons, &photon)
 		}
 

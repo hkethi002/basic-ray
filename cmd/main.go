@@ -23,7 +23,7 @@ func main() {
 
 	// rgb := render.Color{.18, 0, .18}
 	lightSource := &render.DirectionalLight{Direction: geometry.Vector{4, -1, -3}, RGB: render.Color{2000, 2000, 2000}}
-	// lightSource := &render.DeltaLight{Location: geometry.Point{-2.4, 2.4, -0.1}, RGB: render.Color{1000, 1000, 1000}}
+	// pointLightSource := &render.DeltaLight{Location: geometry.Point{0, 2, 0}, RGB: render.Color{1000, 1000, 1000}}
 	object, err := myio.ReadObject("cube.json")
 	check(err)
 	// triangleBlue := &geometry.Triangle{
@@ -44,7 +44,7 @@ func main() {
 	}
 	fmt.Println(triangles[14].Normal)
 
-	render.Main(eye, lightSource, camera, triangles)
+	render.Main(eye, []render.LightSource{lightSource}, camera, triangles)
 
 	myio.Write(camera, "output.ppm")
 

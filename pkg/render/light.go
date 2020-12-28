@@ -55,7 +55,7 @@ func GetReflectiveVector(incedentVector geometry.Vector, triangle *geometry.Tria
 	return reflectionVector
 }
 
-func GetDirectLight(destination geometry.Point, triangles []*geometry.Triangle, lightSource LightSource) *Photon {
+func getDirectLightFromSingleSource(destination geometry.Point, triangles []*geometry.Triangle, lightSource LightSource) *Photon {
 	lightDistance := lightSource.GetDistance(destination)
 	photon := lightSource.GetPhoton(destination)
 	ray := &geometry.Ray{Origin: destination, Vector: geometry.ScalarProduct(photon.vector, -1)}
@@ -71,4 +71,16 @@ func GetDirectLight(destination geometry.Point, triangles []*geometry.Triangle, 
 		return nil
 	}
 	return &photon
+}
+
+func GetDirectLight(destination geometry.Point, triangles []*geometry.Triangle, lightSources []LightSource) []*Photon {
+	photons := make([]*Photon, 0)
+	var photon *Photon
+	for _, lightSource := range lightSources {
+		photon = getDirectLightFromSingleSource(destination, triangles, lightSource)
+		if photon != nil {
+			photons = append(photons, photon)
+		}
+	}
+	return photons
 }
