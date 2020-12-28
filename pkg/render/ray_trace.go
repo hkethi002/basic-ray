@@ -61,9 +61,18 @@ func GetColor(
 		return Trace(reflectionRay, triangles, lightSource, depth+1)
 	case geometry.DIFFUSE:
 		directLight := GetDirectLight(reflectionPoint, triangles, lightSource)
+		photons := make([]*Photon, 0)
 		if directLight != nil {
-			return DiffuseShader(receiveVector, []*Photon{directLight}, triangle)
+			photons = append(photons, directLight)
 		}
+		sampleRays := geometry.MakeSampleRays(reflectionPoint, triangle.GetNormal(), 16)
+		var photon Photon
+		for _, sampleRay := range sampleRays {
+			photon = Trace(sampleRay, triangles, lightSource, depth+1)
+			photons = append(photons, &photon)
+		}
+
+		return DiffuseShader(receiveVector, photons, triangle)
 
 	}
 
