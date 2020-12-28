@@ -16,6 +16,7 @@ type Ray struct {
 }
 
 type Triangle struct {
+	Id      int
 	Vertex0 Point
 	Vertex1 Point
 	Vertex2 Point

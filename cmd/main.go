@@ -21,7 +21,8 @@ func main() {
 	camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 1280, 720)
 
 	// rgb := render.Color{.18, 0, .18}
-	lightSource := &render.DirectionalLight{Direction: geometry.Vector{5, -1, -1}, RGB: render.Color{1000, 1000, 1000}}
+	lightSource := &render.DirectionalLight{Direction: geometry.Vector{4, -1, -3}, RGB: render.Color{2000, 2000, 2000}}
+	// lightSource := &render.DeltaLight{Location: geometry.Point{-2.4, 2.4, -0.1}, RGB: render.Color{1000, 1000, 1000}}
 	object, err := myio.ReadObject("cube.json")
 	check(err)
 	// triangleBlue := &geometry.Triangle{
@@ -33,10 +34,14 @@ func main() {
 	// }
 
 	triangles := geometry.TriangulateObject(object)
-	// triangles = append(triangles, triangleBlue)
-	fmt.Println(triangles[2].Vertex0)
-	fmt.Println(triangles[2].Vertex1)
-	fmt.Println(triangles[2].Vertex2)
+
+	object, err = myio.ReadObject("scene.json")
+	check(err)
+	triangles = append(triangles, geometry.TriangulateObject(object)...)
+	for i, t := range triangles {
+		t.Id = i
+	}
+	fmt.Println(triangles[14].Normal)
 
 	render.Main(eye, lightSource, camera, triangles)
 

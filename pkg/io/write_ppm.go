@@ -4,6 +4,7 @@ import (
 	render "basic-ray/pkg/render"
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -28,7 +29,7 @@ func Write(camera *render.Camera, filePath string) {
 	for i := 0; i < len(image); i++ {
 		for j := 0; j < len(image[i]); j++ {
 			color := image[i][j]
-			writer.WriteString(fmt.Sprintf("%d %d %d ", int64(color[0]), int64(color[1]), int64(color[2])))
+			writer.WriteString(fmt.Sprintf("%d %d %d ", int64(math.Round(color[0])), int64(math.Round(color[1])), int64(math.Round(color[2]))))
 		}
 		writer.WriteString("\n")
 	}
