@@ -25,7 +25,7 @@ func (sphere *Sphere) CreateMesh(refinement int) *Mesh {
 
 func (sphere *Sphere) createBaseIcosahedron() *Mesh {
 	sideLength := sphere.Radius * ICO_EDGE_LENGTH
-	translate := geometry.CreateVector(geometry.Point{0, 0, 0}, sphere.Origin)
+	translate := geometry.CreateVector(sphere.Origin, geometry.Point{0, 0, 0})
 	vertexes := []geometry.Point{
 		geometry.Translate(geometry.Point{2 * sideLength, sideLength, 0}, translate),
 		geometry.Translate(geometry.Point{-2 * sideLength, sideLength, 0}, translate),

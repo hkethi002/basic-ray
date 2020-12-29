@@ -22,44 +22,27 @@ func main() {
 	// camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 2560, 1440)
 
 	// rgb := render.Color{.18, 0, .18}
-	lightSource := &render.DirectionalLight{Direction: geometry.Vector{0, -1, -1}, RGB: render.Color{2000, 2000, 2000}}
-	// lightSource := &render.DeltaLight{Location: geometry.Point{-2, 2, 0}, RGB: render.Color{10000, 10000, 10000}}
-	// lightSource2 := &render.DeltaLight{Location: geometry.Point{2, 0.5, -1}, RGB: render.Color{5000, 5000, 5000}}
+	// lightSource := &render.DirectionalLight{Direction: geometry.Vector{0, -1, -1}, RGB: render.Color{2000, 2000, 2000}}
+	lightSource := &render.DeltaLight{Location: geometry.Point{-2, 2, 0}, RGB: render.Color{10000, 10000, 10000}}
+	lightSource2 := &render.DeltaLight{Location: geometry.Point{2, 0.5, -1}, RGB: render.Color{5000, 5000, 5000}}
 	object, err := myio.ReadObject("sphere2.json")
 	check(err)
-	// triangleBlue := &geometry.Triangle{
-	// 	Vertex0:       geometry.Point{-5, -1.5, -5},
-	// 	Vertex1:       geometry.Point{-5, 2, -4.5},
-	// 	Vertex2:       geometry.Point{-5, -1.5, -4},
-	// 	DiffuseAlbedo: [3]float64{.1, .1, .9},
-	// 	MaterialType:  2,
-	// }
 
 	triangles := geometry.TriangulateObject(object)
 
 	// object, err = myio.ReadObject("scene.json")
-	// object, err = myio.ReadObject("scene2.json")
-	// check(err)
-	// triangles = append(triangles, geometry.TriangulateObject(object)...)
+	object, err = myio.ReadObject("scene2.json")
+	check(err)
+	triangles = append(triangles, geometry.TriangulateObject(object)...)
 	for i, t := range triangles {
 		t.Id = i
 	}
 	fmt.Println("Starting Ray Tracing...")
 
 	// render.Main(eye, []render.LightSource{lightSource}, camera, triangles)
-	render.MultiThreadedMain(eye, []render.LightSource{lightSource}, camera, triangles)
+	render.MultiThreadedMain(eye, []render.LightSource{lightSource, lightSource2}, camera, triangles)
 
 	fmt.Println("finished, writing image...")
 
 	myio.Write(camera, "output.ppm")
-
-	// for i := 0.0; i < 9.0; i += .1 {
-	// 	eye = geometry.Point{0, 0, 0 - i}
-	// 	bottomLeftCorner = geometry.Point{-2.5, -1.40625, -.5 - i}
-	// 	bottomRightCorner = geometry.Point{2.5, -1.40625, -.5 - i}
-	// 	topLeftCorner = geometry.Point{-2.5, 1.40625, -.5 - i}
-	// 	camera = render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 256, 144)
-	// 	render.Main(eye, lightSource, camera, triangles)
-	// 	myio.Write(camera, fmt.Sprintf("moving_down_red_road/output_%f.ppm", i))
-	// }
 }
