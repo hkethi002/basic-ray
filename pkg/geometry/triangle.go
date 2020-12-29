@@ -77,7 +77,7 @@ func TriangulatePolygon(points []Point, normalVector Vector, texture *TexturePro
 	return triangles
 }
 
-func GetFaceVertexes(face []int, vertexes [][3]float64) []Point {
+func GetFaceVertexes(face []int, vertexes []Point) []Point {
 	points := make([]Point, len(face))
 	for faceIndex, vertexIndex := range face {
 		points[faceIndex] = vertexes[vertexIndex]

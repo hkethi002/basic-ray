@@ -41,9 +41,9 @@ type TextureProperties struct {
 }
 
 type Object struct {
-	Vertexes [][3]float64        `json:"vertexes"`
+	Vertexes []Point             `json:"vertexes"`
 	Faces    [][]int             `json:"faces"`
-	Normals  [][3]float64        `json:"normals"`
+	Normals  []Vector            `json:"normals"`
 	Textures []TextureProperties `json:"textures"`
 	// Maps faces (index) to texture (value is the index in the properties list)
 	TextureMap []int `json:"texture_map"`

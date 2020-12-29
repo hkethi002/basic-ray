@@ -23,3 +23,12 @@ func ReadObject(filename string) (*geometry.Object, error) {
 
 	return &obj, nil
 }
+
+func WriteObject(filename string, object *geometry.Object) error {
+	fileData, err := json.MarshalIndent(*object, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filename, fileData, 0644)
+}
