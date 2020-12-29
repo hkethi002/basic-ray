@@ -25,13 +25,13 @@ func main() {
 	// lightSource := &render.DirectionalLight{Direction: geometry.Vector{0, -1, -1}, RGB: render.Color{2000, 2000, 2000}}
 	lightSource := &render.DeltaLight{Location: geometry.Point{-2, 2, 0}, RGB: render.Color{10000, 10000, 10000}}
 	lightSource2 := &render.DeltaLight{Location: geometry.Point{2, 0.5, -1}, RGB: render.Color{5000, 5000, 5000}}
-	object, err := myio.ReadObject("sphere2.json")
+	object, err := myio.ReadObject("sphere1.json")
 	check(err)
 
 	triangles := geometry.TriangulateObject(object)
 
-	// object, err = myio.ReadObject("scene.json")
-	object, err = myio.ReadObject("scene2.json")
+	object, err = myio.ReadObject("scene.json")
+	// object, err = myio.ReadObject("scene2.json")
 	check(err)
 	triangles = append(triangles, geometry.TriangulateObject(object)...)
 	for i, t := range triangles {

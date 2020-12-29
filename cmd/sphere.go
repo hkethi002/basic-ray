@@ -11,8 +11,8 @@ func main() {
 		Radius: 0.5,
 		Origin: geometry.Point{0, 0, -3},
 	}
-	sphereMesh := sphere.CreateMesh(0)
+	sphereMesh := sphere.CreateMesh(2)
 	object := mesh.CreateObject(sphereMesh, make([]geometry.TextureProperties, 0), make([]int, 0))
 
-	myio.WriteObject("sphere2.json", object)
+	myio.WriteObject("sphere1.json", object)
 }

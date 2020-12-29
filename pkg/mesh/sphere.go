@@ -16,15 +16,73 @@ type Sphere struct {
 }
 
 func (sphere *Sphere) CreateMesh(refinement int) *Mesh {
-	// vertexes := make([]geometry.Point, 0)
-	// faces := make([][3]int, 0)
-	// normals := make([]geometry.Vector, 0)
-	return sphere.createBaseIcosahedron()
+	mesh := sphere.createBaseIcosahedron()
+	for i := 0; i < refinement; i++ {
+		mesh = RefineMesh(sphere, mesh)
+	}
+	return mesh
 
 }
 
+func GetMidPoint(sphere *Sphere, mesh *Mesh, faceIndexA, faceIndexB int, cache *map[[2]int]int) int {
+	// Check cache
+	vertexIndex, present := (*cache)[[2]int{faceIndexA, faceIndexB}]
+	if present == true {
+		return vertexIndex
+	}
+	vertexIndex, present = (*cache)[[2]int{faceIndexB, faceIndexA}]
+	if present == true {
+		return vertexIndex
+	}
+
+	// Calculate midPoint vertex if not in cache
+	vertexA := mesh.Vertexes[faceIndexA]
+	vertexB := mesh.Vertexes[faceIndexB]
+
+	translate := geometry.ScalarProduct(geometry.CreateVector(vertexB, vertexA), .5)
+	linePoint := geometry.Translate(vertexA, translate)
+
+	vector := geometry.ScalarProduct(geometry.Normalize(geometry.CreateVector(linePoint, sphere.Origin)), sphere.Radius)
+	midVertex := geometry.Translate(sphere.Origin, vector)
+
+	// Add midPoint vertex to the mesh and cache
+	mesh.Vertexes = append(mesh.Vertexes, midVertex)
+	vertexIndex = len(mesh.Vertexes) - 1
+	(*cache)[[2]int{faceIndexA, faceIndexB}] = vertexIndex
+	return vertexIndex
+}
+
+func RefineMesh(sphere *Sphere, mesh *Mesh) *Mesh {
+	refinedMesh := Mesh{Vertexes: mesh.Vertexes}
+	midPointCache := make(map[[2]int]int)
+	faces := make([][]int, 0)
+	for _, face := range mesh.Faces {
+		newVertexes := make([]int, 3)
+		for edge := 0; edge < 3; edge++ {
+			newVertexes[edge] = GetMidPoint(sphere, &refinedMesh, face[edge], face[(edge+1)%3], &midPointCache)
+		}
+
+		faces = append(faces, []int{face[0], newVertexes[0], newVertexes[2]})
+		faces = append(faces, []int{face[1], newVertexes[1], newVertexes[0]})
+		faces = append(faces, []int{face[2], newVertexes[2], newVertexes[1]})
+		faces = append(faces, []int{newVertexes[0], newVertexes[1], newVertexes[2]})
+
+	}
+
+	normals := make([]geometry.Vector, len(faces))
+
+	for i, face := range faces {
+		edge1 := geometry.CreateVector(refinedMesh.Vertexes[face[0]], refinedMesh.Vertexes[face[1]])
+		edge2 := geometry.CreateVector(refinedMesh.Vertexes[face[0]], refinedMesh.Vertexes[face[2]])
+		normals[i] = geometry.Normalize(geometry.CrossProduct(edge1, edge2))
+	}
+	refinedMesh.Faces = faces
+	refinedMesh.Normals = normals
+	return &refinedMesh
+}
+
 func (sphere *Sphere) createBaseIcosahedron() *Mesh {
-	sideLength := sphere.Radius * ICO_EDGE_LENGTH
+	sideLength := sphere.Radius * ICO_EDGE_LENGTH / 2.0
 	translate := geometry.CreateVector(sphere.Origin, geometry.Point{0, 0, 0})
 	vertexes := []geometry.Point{
 		geometry.Translate(geometry.Point{2 * sideLength, sideLength, 0}, translate),
