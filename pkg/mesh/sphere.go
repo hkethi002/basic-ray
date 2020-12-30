@@ -111,6 +111,11 @@ func (sphere *Sphere) createBaseIcosahedron() *Mesh {
 		geometry.Translate(geometry.Point{-1 * sideLength, 0, -2 * sideLength}, translate),
 	}
 
+	for i, vertex := range vertexes {
+		vector := geometry.ScalarProduct(geometry.Normalize(geometry.CreateVector(vertex, sphere.Origin)), sphere.Radius)
+		vertexes[i] = geometry.Translate(sphere.Origin, vector)
+	}
+
 	faces := [][]int{
 		[]int{0, 6, 4},
 		[]int{0, 8, 2},

@@ -18,9 +18,9 @@ func main() {
 	bottomLeftCorner := geometry.Point{-2.5, -1.40625, -2}
 	bottomRightCorner := geometry.Point{2.5, -1.40625, -2}
 	topLeftCorner := geometry.Point{-2.5, 1.40625, -2}
-	// camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 1980, 1080)
+	camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 1980, 1080)
 	// camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 1280, 720)
-	camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 2560, 1440)
+	// camera := render.MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner, 256, 144)
 
 	// rgb := render.Color{.18, 0, .18}
 	lightSource := &render.DirectionalLight{Direction: geometry.Vector{1.5, -1, 0}, RGB: render.Color{2000, 2000, 2000}}
