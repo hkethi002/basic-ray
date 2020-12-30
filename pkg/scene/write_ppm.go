@@ -1,4 +1,4 @@
-package io
+package scene
 
 import (
 	render "basic-ray/pkg/render"
@@ -14,7 +14,7 @@ func check(err error) {
 	}
 }
 
-func Write(camera *render.Camera, filePath string) {
+func WriteImage(camera *render.Camera, filePath string) {
 	image := flip(transpose(*camera.Pixels))
 	fmt.Println(image[0][0])
 	fileObject, err := os.Create(filePath)

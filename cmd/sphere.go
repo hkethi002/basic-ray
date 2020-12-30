@@ -1,17 +1,51 @@
-package main
+package cmd
 
 import (
 	geometry "basic-ray/pkg/geometry"
-	myio "basic-ray/pkg/io"
 	mesh "basic-ray/pkg/mesh"
+	sceneIo "basic-ray/pkg/scene"
+	"fmt"
+	"github.com/spf13/cobra"
+	"strconv"
 )
 
-func main() {
-	sphere := mesh.Sphere{
-		Radius: 0.5,
-		Origin: geometry.Point{0, -2, -5},
+func init() {
+	var (
+		refinement int
+		shading    bool
+		output     string
+	)
+
+	var createSphereCmd = &cobra.Command{
+		Use:   "sphere",
+		Short: "Create a sphere mesh",
+		Args:  cobra.MinimumNArgs(4),
+		Run: func(cmd *cobra.Command, args []string) {
+			origin := geometry.Point{}
+			for i := 0; i < 3; i++ {
+				coord, err := strconv.ParseFloat(args[i], 64)
+				check(err)
+				origin[i] = coord
+			}
+
+			radius, err := strconv.ParseFloat(args[3], 64)
+			check(err)
+			CreateSphereMesh(origin, radius, refinement, shading, output)
+		},
 	}
-	sphereMesh := sphere.CreateMesh(3, true)
+
+	createSphereCmd.Flags().IntVarP(&refinement, "refinement", "r", 0, "Iterations to refine mesh, increases # of triangles by 4")
+	createSphereCmd.Flags().BoolVar(&shading, "gouraud", true, "Use Gouraud Shading instead of Flat")
+	createSphereCmd.Flags().StringVarP(&output, "output", "o", "Sphere", "Sphere name")
+	rootCmd.AddCommand(createSphereCmd)
+}
+
+func CreateSphereMesh(origin geometry.Point, radius float64, refinement int, shading bool, output string) {
+	sphere := mesh.Sphere{
+		Radius: radius,
+		Origin: origin,
+	}
+	sphereMesh := sphere.CreateMesh(refinement, shading)
 	textures := []geometry.TextureProperties{
 		geometry.TextureProperties{
 			DiffuseAlbedo: [3]float64{0.18, 0, 0.18},
@@ -20,5 +54,6 @@ func main() {
 	}
 	object := mesh.CreateObject(sphereMesh, textures, make([]int, 0))
 
-	myio.WriteObject("sphere1.json", object)
+	filename := fmt.Sprintf("%s.json", output)
+	sceneIo.WriteObject(filename, object)
 }

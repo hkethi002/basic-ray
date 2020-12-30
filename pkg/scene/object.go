@@ -1,4 +1,4 @@
-package io
+package scene
 
 import (
 	geometry "basic-ray/pkg/geometry"

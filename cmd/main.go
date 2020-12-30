@@ -1,16 +1,27 @@
-package main
+package cmd
 
 import (
 	geometry "basic-ray/pkg/geometry"
-	myio "basic-ray/pkg/io"
 	render "basic-ray/pkg/render"
+	sceneIo "basic-ray/pkg/scene"
 	"fmt"
+	"github.com/spf13/cobra"
 )
 
-func check(err error) {
-	if err != nil {
-		panic(err)
+func init() {
+	var output string
+
+	var renderCmd = &cobra.Command{
+		Use:   "render",
+		Short: "Render a scene",
+		Args:  cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			sceneFile := args[0]
+			RenderScene(sceneFile, output)
+		},
 	}
+	renderCmd.Flags().StringVarP(&output, "output", "o", "output.ppm", "output file name")
+	rootCmd.AddCommand(renderCmd)
 }
 
 func main() {
@@ -26,13 +37,13 @@ func main() {
 	lightSource := &render.DirectionalLight{Direction: geometry.Vector{1.5, -1, 0}, RGB: render.Color{2000, 2000, 2000}}
 	// lightSource := &render.DeltaLight{Location: geometry.Point{-2, 2, 0}, RGB: render.Color{10000, 10000, 10000}}
 	// lightSource2 := &render.DeltaLight{Location: geometry.Point{2, 0.5, -1}, RGB: render.Color{5000, 5000, 5000}}
-	object, err := myio.ReadObject("sphere1.json")
+	object, err := sceneIo.ReadObject("NewSphere.json")
 	check(err)
 
 	triangles := geometry.TriangulateObject(object)
 
-	// object, err = myio.ReadObject("scene.json")
-	object, err = myio.ReadObject("scene2.json")
+	// object, err = sceneIo.ReadObject("scene.json")
+	object, err = sceneIo.ReadObject("scene2.json")
 	check(err)
 	triangles = append(triangles, geometry.TriangulateObject(object)...)
 	for i, t := range triangles {
@@ -45,5 +56,25 @@ func main() {
 
 	fmt.Println("finished, writing image...")
 
-	myio.Write(camera, "output.ppm")
+	sceneIo.WriteImage(camera, "output.ppm")
+}
+
+func RenderScene(sceneFile, output string) {
+	fmt.Printf("Loading scene %s...\n", sceneFile)
+	scene, err := sceneIo.LoadScene(sceneFile)
+	check(err)
+
+	camera, objects, lightSources, err := scene.GetComponents()
+	check(err)
+
+	triangles := make([]*geometry.Triangle, 0)
+	for _, object := range objects {
+		triangles = append(triangles, geometry.TriangulateObject(object)...)
+	}
+
+	fmt.Println("Starting Ray Tracing...")
+	render.MultiThreadedMain(scene.Camera.Eye, lightSources, camera, triangles)
+
+	fmt.Println("finished, writing image...")
+	sceneIo.WriteImage(camera, output)
 }
