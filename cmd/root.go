@@ -13,9 +13,6 @@ var (
 		Long: `A Slow and Rigid Ray tracigin 3D renderer built by Harsha in Go.
 	Complete documentation is available at https://github.com/hkethi002/basic-ray`,
 		Version: "0.0.0",
-		Run: func(cmd *cobra.Command, args []string) {
-			// Do Stuff Here
-		},
 	}
 )
 
