@@ -1,8 +1,8 @@
 package geometry
 
 func (triangle *Triangle) GetNormal() Vector {
-	if triangle.Normal != nil {
-		return *triangle.Normal
+	if Magnitude(triangle.Normal) > 0 {
+		return triangle.Normal
 	}
 	edge1 := CreateVector(triangle.Vertex1, triangle.Vertex0)
 	edge2 := CreateVector(triangle.Vertex2, triangle.Vertex0)
@@ -59,14 +59,15 @@ func (triangle *Triangle) GetArea() float64 {
 	return Magnitude(CrossProduct(edge1, edge2)) / 2.0
 }
 
-func TriangulatePolygon(points []Point, normalVector Vector, texture *TextureProperties) []*Triangle {
+func TriangulatePolygon(points []Point, normal Vector, vertexNormals []Vector, texture *TextureProperties) []*Triangle {
 	triangles := make([]*Triangle, len(points)-2)
 	for i := 0; i < len(points)-2; i++ {
 		triangle := &Triangle{
 			Vertex0:            points[0],
 			Vertex1:            points[i+1],
 			Vertex2:            points[i+2],
-			Normal:             &normalVector,
+			Normal:             normal,
+			VertexNormals:      vertexNormals,
 			DiffuseAlbedo:      texture.DiffuseAlbedo,
 			SpecularAlbedo:     texture.SpecularAlbedo,
 			TranslucenseAlbedo: texture.TranslucenseAlbedo,
@@ -87,12 +88,22 @@ func GetFaceVertexes(face []int, vertexes []Point) []Point {
 
 func TriangulateObject(object *Object) []*Triangle {
 	var triangles []*Triangle
+
 	for i, face := range object.Faces {
+		var vertexNormals []Vector
 		points := GetFaceVertexes(face, object.Vertexes)
 		texture := object.Textures[object.TextureMap[i]]
+		if len(object.VertexNormals) > 0 {
+			vertexNormals = make([]Vector, len(points))
+			for p := 0; p < len(points); p++ {
+				vertexNormals[p] = Normalize(object.VertexNormals[face[p]])
+			}
+		}
+		normal := Normalize(object.Normals[i])
+
 		triangles = append(
 			triangles,
-			TriangulatePolygon(points, Normalize(object.Normals[i]), &texture)...,
+			TriangulatePolygon(points, normal, vertexNormals, &texture)...,
 		)
 	}
 	return triangles

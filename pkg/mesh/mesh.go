@@ -5,9 +5,10 @@ import (
 )
 
 type Mesh struct {
-	Vertexes []geometry.Point
-	Faces    [][]int
-	Normals  []geometry.Vector
+	Vertexes      []geometry.Point
+	Faces         [][]int
+	Normals       []geometry.Vector
+	VertexNormals []geometry.Vector
 }
 
 func CreateObject(
@@ -16,7 +17,7 @@ func CreateObject(
 	textureMap []int,
 ) *geometry.Object {
 	if len(textures) == 0 {
-		textures = append(textures, geometry.TextureProperties{DiffuseAlbedo: [3]float64{0.18, 0, 0.18}, MaterialType: 2})
+		textures = append(textures, geometry.TextureProperties{DiffuseAlbedo: [3]float64{0.18, 0, 0.18}, MaterialType: 3})
 	}
 
 	if len(textureMap) == 0 {
@@ -24,10 +25,11 @@ func CreateObject(
 	}
 
 	return &geometry.Object{
-		Vertexes:   mesh.Vertexes,
-		Faces:      mesh.Faces,
-		Normals:    mesh.Normals,
-		Textures:   textures,
-		TextureMap: textureMap,
+		Vertexes:      mesh.Vertexes,
+		Faces:         mesh.Faces,
+		Normals:       mesh.Normals,
+		VertexNormals: mesh.VertexNormals,
+		Textures:      textures,
+		TextureMap:    textureMap,
 	}
 }

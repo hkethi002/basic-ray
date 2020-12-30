@@ -15,11 +15,29 @@ type Sphere struct {
 	Origin geometry.Point
 }
 
-func (sphere *Sphere) CreateMesh(refinement int) *Mesh {
+func (sphere *Sphere) CreateMesh(refinement int, smoothShading bool) *Mesh {
 	mesh := sphere.createBaseIcosahedron()
 	for i := 0; i < refinement; i++ {
 		mesh = RefineMesh(sphere, mesh)
 	}
+
+	if smoothShading == true {
+		vertexNormals := make([]geometry.Vector, len(mesh.Vertexes))
+		for i, vertex := range mesh.Vertexes {
+			vertexNormals[i] = geometry.Normalize(geometry.CreateVector(vertex, sphere.Origin))
+		}
+		mesh.VertexNormals = vertexNormals
+	}
+
+	normals := make([]geometry.Vector, len(mesh.Faces))
+
+	for i, face := range mesh.Faces {
+		edge1 := geometry.CreateVector(mesh.Vertexes[face[0]], mesh.Vertexes[face[1]])
+		edge2 := geometry.CreateVector(mesh.Vertexes[face[0]], mesh.Vertexes[face[2]])
+		normals[i] = geometry.Normalize(geometry.CrossProduct(edge1, edge2))
+	}
+	mesh.Normals = normals
+
 	return mesh
 
 }
@@ -69,15 +87,7 @@ func RefineMesh(sphere *Sphere, mesh *Mesh) *Mesh {
 
 	}
 
-	normals := make([]geometry.Vector, len(faces))
-
-	for i, face := range faces {
-		edge1 := geometry.CreateVector(refinedMesh.Vertexes[face[0]], refinedMesh.Vertexes[face[1]])
-		edge2 := geometry.CreateVector(refinedMesh.Vertexes[face[0]], refinedMesh.Vertexes[face[2]])
-		normals[i] = geometry.Normalize(geometry.CrossProduct(edge1, edge2))
-	}
 	refinedMesh.Faces = faces
-	refinedMesh.Normals = normals
 	return &refinedMesh
 }
 
@@ -127,13 +137,5 @@ func (sphere *Sphere) createBaseIcosahedron() *Mesh {
 		[]int{11, 1, 6},
 	}
 
-	normals := make([]geometry.Vector, 20)
-
-	for i, face := range faces {
-		edge1 := geometry.CreateVector(vertexes[face[0]], vertexes[face[1]])
-		edge2 := geometry.CreateVector(vertexes[face[0]], vertexes[face[2]])
-		normals[i] = geometry.Normalize(geometry.CrossProduct(edge1, edge2))
-	}
-
-	return &Mesh{Vertexes: vertexes, Faces: faces, Normals: normals}
+	return &Mesh{Vertexes: vertexes, Faces: faces}
 }

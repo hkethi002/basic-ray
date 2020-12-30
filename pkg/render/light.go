@@ -5,6 +5,8 @@ import (
 	"math"
 )
 
+const BIAS = 0.00001
+
 type Color [3]float64
 
 type Photon struct {
@@ -79,7 +81,8 @@ func getDirectLightFromSingleSource(destination geometry.Point, triangles []*geo
 			continue
 		}
 		collision := *intersects
-		if geometry.Distance(destination, collision) > lightDistance {
+		collisionDistance := geometry.Distance(destination, collision)
+		if collisionDistance > lightDistance || collisionDistance < BIAS {
 			continue
 		}
 		return nil

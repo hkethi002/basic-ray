@@ -3,7 +3,8 @@ package geometry
 const (
 	REFLECTIVE                = iota
 	REFLECTIVE_AND_REFRACTIVE = iota
-	DIFFUSE                   = iota
+	FLAT_DIFFUSE              = iota
+	GOURAUD_DIFFUSE           = iota
 )
 
 type Point [3]float64
@@ -16,11 +17,12 @@ type Ray struct {
 }
 
 type Triangle struct {
-	Id      int
-	Vertex0 Point
-	Vertex1 Point
-	Vertex2 Point
-	Normal  *Vector
+	Id            int
+	Vertex0       Point
+	Vertex1       Point
+	Vertex2       Point
+	Normal        Vector
+	VertexNormals []Vector
 	// Albedo are [0, 1] per rgb color
 	DiffuseAlbedo      [3]float64
 	SpecularAlbedo     [3]float64
@@ -41,10 +43,11 @@ type TextureProperties struct {
 }
 
 type Object struct {
-	Vertexes []Point             `json:"vertexes"`
-	Faces    [][]int             `json:"faces"`
-	Normals  []Vector            `json:"normals"`
-	Textures []TextureProperties `json:"textures"`
+	Vertexes      []Point             `json:"vertexes"`
+	Faces         [][]int             `json:"faces"`
+	Normals       []Vector            `json:"normals"`
+	VertexNormals []Vector            `json:"vertex_normals,omitempty"`
+	Textures      []TextureProperties `json:"textures"`
 	// Maps faces (index) to texture (value is the index in the properties list)
 	TextureMap []int `json:"texture_map"`
 }

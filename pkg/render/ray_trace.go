@@ -106,10 +106,12 @@ func GetColor(
 	case geometry.REFLECTIVE:
 		reflectionRay := &geometry.Ray{Origin: reflectionPoint, Vector: GetReflectiveVector(ray.Vector, triangle)}
 		return Trace(reflectionRay, triangles, lightSources, depth+1)
-	case geometry.DIFFUSE:
+	case geometry.FLAT_DIFFUSE:
 		photons := GetDirectLight(reflectionPoint, triangles, lightSources)
 		return DiffuseShader(receiveVector, photons, triangle)
-
+	case geometry.GOURAUD_DIFFUSE:
+		photons := GetDirectLight(reflectionPoint, triangles, lightSources)
+		return GouraudShader(receiveVector, reflectionPoint, photons, triangle)
 	}
 
 	return Photon{vector: receiveVector}
