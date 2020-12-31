@@ -12,7 +12,7 @@ func init() {
 	var output string
 
 	var renderCmd = &cobra.Command{
-		Use:   "render",
+		Use:   "render [SCENE_FILE]",
 		Short: "Render a scene",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
