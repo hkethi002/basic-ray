@@ -17,7 +17,7 @@ func init() {
 	)
 
 	var createSphereCmd = &cobra.Command{
-		Use:   "sphere",
+		Use:   "sphere [X] [Y] [Z] [RADIUS]",
 		Short: "Create a sphere mesh",
 		Args:  cobra.MinimumNArgs(4),
 		Run: func(cmd *cobra.Command, args []string) {
