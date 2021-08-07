@@ -2,11 +2,10 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
-	random "math/rand"
 )
 
 type Camera interface {
-	GetRay(i, j int, jitter float64) *geometry.Ray
+	GetRay(i, j int, jitter geometry.Point2D) *geometry.Ray
 	GetRays(i, j, samples int) []*geometry.Ray
 	GetSingleRay(i, j int) geometry.Ray
 	GetPixels() *[][]Color
@@ -27,6 +26,7 @@ type ViewPlane struct {
 	PixelSize            float64
 	Gamma                float64
 	InverseGamma         float64
+	Sampler              Sampler
 }
 
 func (camera *OrthoCamera) GetViewPlane() ViewPlane {
@@ -35,10 +35,10 @@ func (camera *OrthoCamera) GetViewPlane() ViewPlane {
 
 func (camera *OrthoCamera) GetRays(i, j, samples int) []*geometry.Ray {
 	rays := make([]*geometry.Ray, samples)
+	jitter := geometry.Point2D{0, 0}
 	for s := 0; s < samples; s++ {
-		var jitter float64 = 0
 		if s > 0 {
-			jitter = random.Float64() - 0.5
+			jitter = camera.ViewPlane.Sampler.SampleUnitSquare()
 		}
 		rays[s] = camera.GetRay(i, j, jitter)
 	}
@@ -46,10 +46,10 @@ func (camera *OrthoCamera) GetRays(i, j, samples int) []*geometry.Ray {
 	return rays
 }
 
-func (camera *OrthoCamera) GetRay(i, j int, jitter float64) *geometry.Ray {
+func (camera *OrthoCamera) GetRay(i, j int, jitter geometry.Point2D) *geometry.Ray {
 	origin := geometry.Point{
-		camera.ViewPlane.PixelSize * ((float64)(i) - (0.5 * (float64)(camera.ViewPlane.HorizontalResolution-1)) + jitter),
-		camera.ViewPlane.PixelSize * ((float64)(j) - (0.5 * (float64)(camera.ViewPlane.VerticalResolution-1)) + jitter),
+		camera.ViewPlane.PixelSize * ((float64)(i) - (0.5 * (float64)(camera.ViewPlane.HorizontalResolution-1)) + jitter[0]),
+		camera.ViewPlane.PixelSize * ((float64)(j) - (0.5 * (float64)(camera.ViewPlane.VerticalResolution-1)) + jitter[1]),
 		100,
 	}
 	return &geometry.Ray{Origin: origin, Vector: camera.Direction}

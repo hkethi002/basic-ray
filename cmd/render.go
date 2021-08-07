@@ -69,7 +69,9 @@ func RenderScene(output string, samples int) {
 	// objects[2] = &render.Plane{Point: geometry.Point{0, 0, 0}, Normal: geometry.Vector{0, 1, -1}}
 	// objects[2].(*render.Plane).Material.Color = render.Color{0, 0.3, 0}
 
-	viewPlane := render.ViewPlane{HorizontalResolution: 200, VerticalResolution: 200, PixelSize: 1, Gamma: 1}
+	sampler := render.JitteredPointSampler{BaseSampler: render.BaseSampler{NumberOfSamples: 9, NumberOfSets: 10}}
+	sampler.GenerateSamples()
+	viewPlane := render.ViewPlane{HorizontalResolution: 400, VerticalResolution: 400, PixelSize: 1, Gamma: 1, Sampler: &sampler}
 
 	pixels := make([][]render.Color, viewPlane.HorizontalResolution)
 	for i := range pixels {

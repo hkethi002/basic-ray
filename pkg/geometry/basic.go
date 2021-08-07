@@ -9,6 +9,8 @@ const (
 
 type Point [3]float64
 
+type Point2D [2]float64
+
 type Vector [3]float64
 
 type Ray struct {
