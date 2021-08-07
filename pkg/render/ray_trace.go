@@ -2,7 +2,6 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
-	"fmt"
 	pb "github.com/cheggaaa/pb/v3"
 	"math"
 )
@@ -51,21 +50,18 @@ func renderPixels(objects []GeometricObject, lightSources []LightSource, samples
 	for i := 0; i < viewPlane.HorizontalResolution; i++ {
 		for j := 0; j < viewPlane.VerticalResolution; j++ {
 			jobs <- true
-			rays := camera.GetRays(i, j, samples)
-			go renderPixel(rays, objects, lightSources, camera, i, j, progress, jobs)
+			ray := camera.GetSingleRay(i, j)
+			go renderPixel(&ray, objects, lightSources, camera, i, j, progress, jobs)
 		}
 	}
 }
 
-func renderPixel(rays []geometry.Ray, objects []GeometricObject, lightSources []LightSource, camera Camera, i, j int, progress chan<- bool, jobs <-chan bool) {
+func renderPixel(ray *geometry.Ray, objects []GeometricObject, lightSources []LightSource, camera Camera, i, j int, progress chan<- bool, jobs <-chan bool) {
 	// var secondaryWeight float64 = 0.5 / (float64)(len(rays)-1)
 	// var weight float64
 	// finalColor := Color{0, 0, 0}
 	// for i, ray := range rays {
 	// 	light := Trace(ray, objects, lightSources, 0)
-	// 	if (light.rgb != Color{0, 0, 0}) {
-	// 		fmt.Println(light.rgb)
-	// 	}
 	// 	if i > 0 {
 	// 		finalColor[0] += light.rgb[0] * secondaryWeight
 	// 		finalColor[1] += light.rgb[1] * secondaryWeight
@@ -78,7 +74,7 @@ func renderPixel(rays []geometry.Ray, objects []GeometricObject, lightSources []
 	// 	}
 
 	// }
-	light := Trace(&rays[0], objects, lightSources, 0)
+	light := Trace(ray, objects, lightSources, 0)
 	camera.SetPixel(i, j, light.rgb) // GetWeightedColor()
 	// complete job
 	<-jobs
@@ -104,7 +100,6 @@ func Trace(ray *geometry.Ray, objects []GeometricObject, lightSources []LightSou
 	}
 
 	if shadeRec.ObjectHit {
-		fmt.Println("Hit")
 		photon.rgb = shadeRec.RGBColor
 	}
 	return photon

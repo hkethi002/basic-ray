@@ -2,7 +2,6 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
-	"fmt"
 	"math"
 )
 
@@ -24,13 +23,12 @@ func (plane *Plane) Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) bo
 }
 
 func (sphere *Sphere) Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) bool {
-	originToCenter := geometry.CreateVector(ray.Origin, sphere.Center)
+	centerToOrigin := geometry.CreateVector(sphere.Center, ray.Origin)
 	a := geometry.DotProduct(ray.Vector, ray.Vector)
-	b := geometry.DotProduct(geometry.ScalarProduct(originToCenter, 2), ray.Vector)
-	c := geometry.DotProduct(originToCenter, originToCenter) - (sphere.Radius * sphere.Radius)
+	b := geometry.DotProduct(geometry.ScalarProduct(centerToOrigin, 2), ray.Vector)
+	c := geometry.DotProduct(centerToOrigin, centerToOrigin) - (sphere.Radius * sphere.Radius)
 	var e, t float64
 	discriminant := (b * b) - 4*a*c
-	fmt.Println(discriminant)
 	if discriminant < 0 {
 		return false
 	}
@@ -38,7 +36,7 @@ func (sphere *Sphere) Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) 
 	t = (-b - e) / (2 * a)
 	if t > sphere.KEpsilon {
 		*tmin = t
-		shadeRec.Normal = geometry.Normalize(geometry.ScalarProduct(originToCenter, -1))
+		shadeRec.Normal = geometry.Normalize(centerToOrigin)
 		shadeRec.LocalHitPoint = geometry.Translate(ray.Origin, geometry.ScalarProduct(ray.Vector, t))
 		return true
 	}
@@ -47,7 +45,7 @@ func (sphere *Sphere) Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) 
 
 	if t > sphere.KEpsilon {
 		*tmin = t
-		shadeRec.Normal = geometry.Normalize(originToCenter)
+		shadeRec.Normal = geometry.Normalize(centerToOrigin)
 		shadeRec.LocalHitPoint = geometry.Translate(ray.Origin, geometry.ScalarProduct(ray.Vector, t))
 		return true
 	}
