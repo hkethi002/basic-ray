@@ -2,7 +2,6 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
-	"math"
 )
 
 const BIAS = 0.00001
@@ -29,6 +28,7 @@ type DirectionalLight struct {
 	RGB       Color
 }
 
+/*
 func (lightSource *DeltaLight) GetPhoton(destination geometry.Point) Photon {
 	fallOff := math.Pow(lightSource.GetDistance(destination), 2)
 	rgb := Color{
@@ -101,3 +101,4 @@ func GetDirectLight(destination geometry.Point, triangles []*geometry.Triangle, 
 	}
 	return photons
 }
+*/

@@ -4,26 +4,27 @@ import (
 	geometry "basic-ray/pkg/geometry"
 	render "basic-ray/pkg/render"
 	sceneIo "basic-ray/pkg/scene"
-	"fmt"
 	"github.com/spf13/cobra"
 )
 
 func init() {
 	var output string
+	var samples int
 
 	var renderCmd = &cobra.Command{
-		Use:   "render [SCENE_FILE]",
+		Use:   "render",
 		Short: "Render a scene",
-		Args:  cobra.MinimumNArgs(1),
+		// Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			sceneFile := args[0]
-			RenderScene(sceneFile, output)
+			RenderScene(output, samples)
 		},
 	}
 	renderCmd.Flags().StringVarP(&output, "output", "o", "output.ppm", "output file name")
+	renderCmd.Flags().IntVarP(&samples, "samples", "s", 1, "number of ray samples per pixel")
 	rootCmd.AddCommand(renderCmd)
 }
 
+/*
 func main() {
 	eye := geometry.Point{0, 0, 0}
 	bottomLeftCorner := geometry.Point{-2.5, -1.40625, -2}
@@ -58,23 +59,27 @@ func main() {
 
 	sceneIo.WriteImage(camera, "output.ppm")
 }
+*/
+func RenderScene(output string, samples int) {
+	objects := make([]render.GeometricObject, 2)
+	objects[0] = &render.Sphere{Center: geometry.Point{0, -25, 0}, Radius: 80}
+	objects[0].(*render.Sphere).Material.Color = render.Color{1, 0, 0}
+	objects[1] = &render.Sphere{Center: geometry.Point{0, 30, 0}, Radius: 60}
+	objects[1].(*render.Sphere).Material.Color = render.Color{1, 1, 0}
+	// objects[2] = &render.Plane{Point: geometry.Point{0, 0, 0}, Normal: geometry.Vector{0, 1, -1}}
+	// objects[2].(*render.Plane).Material.Color = render.Color{0, 0.3, 0}
 
-func RenderScene(sceneFile, output string) {
-	fmt.Printf("Loading scene %s...\n", sceneFile)
-	scene, err := sceneIo.LoadScene(sceneFile)
-	check(err)
+	viewPlane := render.ViewPlane{HorizontalResolution: 200, VerticalResolution: 200, PixelSize: 1, Gamma: 1}
 
-	camera, objects, lightSources, err := scene.GetComponents()
-	check(err)
-
-	triangles := make([]*geometry.Triangle, 0)
-	for _, object := range objects {
-		triangles = append(triangles, geometry.TriangulateObject(object)...)
+	pixels := make([][]render.Color, viewPlane.HorizontalResolution)
+	for i := range pixels {
+		pixels[i] = make([]render.Color, viewPlane.VerticalResolution)
 	}
+	camera := render.OrthoCamera{ViewPlane: viewPlane, TopLeft: geometry.Point{0, -25, -160}, Direction: geometry.Vector{0, 0, 1}, Pixels: &pixels}
 
-	fmt.Println("Starting Ray Tracing...")
-	render.MultiThreadedMain(scene.Camera.Eye, lightSources, camera, triangles)
+	var lightSources []render.LightSource
 
-	fmt.Println("finished, writing image...")
-	sceneIo.WriteImage(camera, output)
+	render.MultiThreadedMain(&camera, lightSources, objects, samples)
+
+	sceneIo.WriteImage(&camera, output)
 }

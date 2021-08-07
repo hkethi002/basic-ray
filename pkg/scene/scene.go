@@ -3,9 +3,6 @@ package scene
 import (
 	geometry "basic-ray/pkg/geometry"
 	render "basic-ray/pkg/render"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 )
 
 const (
@@ -24,7 +21,7 @@ type CameraSpec struct {
 type LightSpec struct {
 	Type      string          `json:"type"`
 	Direction geometry.Vector `json:"direction,omitempty"`
-	Location  geometry.Point  `json:"location, omitempty"`
+	Location  geometry.Point  `json:"location,omitempty"`
 	RGB       render.Color    `json:"rgb"`
 }
 
@@ -33,6 +30,8 @@ type Scene struct {
 	Camera       CameraSpec  `json:"camera"`
 	LightSources []LightSpec `json:"light_sources"`
 }
+
+/*
 
 func (scene *Scene) GetComponents() (*render.Camera, []*geometry.Object, []render.LightSource, error) {
 	var err error
@@ -89,3 +88,4 @@ func LoadScene(filename string) (*Scene, error) {
 
 	return &scene, nil
 }
+*/

@@ -20,7 +20,7 @@ func getLinePoint(ray *Ray, d float64) Point {
 	}
 }
 
-func GetIntersection(ray *Ray, triangle *Triangle) *Point {
+func (triangle *Triangle) GetIntersection(ray *Ray) *Point {
 	epsilon := 0.0000001
 	normal := triangle.GetNormal()
 	cos := DotProduct(ray.Vector, normal)

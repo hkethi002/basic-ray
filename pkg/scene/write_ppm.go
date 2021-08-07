@@ -14,8 +14,8 @@ func check(err error) {
 	}
 }
 
-func WriteImage(camera *render.Camera, filePath string) {
-	image := flip(transpose(*camera.Pixels))
+func WriteImage(camera render.Camera, filePath string) {
+	image := flip(transpose(*camera.GetPixels()))
 	fmt.Println(image[0][0])
 	fileObject, err := os.Create(filePath)
 	check(err)
@@ -27,7 +27,7 @@ func WriteImage(camera *render.Camera, filePath string) {
 	writer.WriteString(fmt.Sprintf("%d %d\n", len(image[0]), len(image)))
 
 	writer.WriteString("255\n")
-	weight := 255.0 / findMax(image)
+	weight := 255.0 // / findMax(image)
 	for i := 0; i < len(image); i++ {
 		for j := 0; j < len(image[i]); j++ {
 			color := image[i][j]

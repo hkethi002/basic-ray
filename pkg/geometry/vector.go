@@ -47,3 +47,7 @@ func Distance(pointA, pointB Point) float64 {
 func Translate(point Point, vector Vector) Point {
 	return Point{point[0] + vector[0], point[1] + vector[1], point[2] + vector[2]}
 }
+
+func (vector *Vector) IsNormal() bool {
+	return Magnitude(*vector) == 1
+}

@@ -2,16 +2,70 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
+	random "math/rand"
 )
 
-type Camera struct {
-	origin geometry.Point
-	unitX  geometry.Vector // The normalized vector for the x axis in 3D space
-	unitY  geometry.Vector // The normalized vector for the y axis in 3D space
-
-	Pixels *[][]Color
+type Camera interface {
+	GetRay(i, j int, jitter float64) geometry.Ray
+	GetRays(i, j, samples int) []geometry.Ray
+	GetPixels() *[][]Color
+	SetPixel(i, j int, color Color)
+	GetViewPlane() ViewPlane
 }
 
+type OrthoCamera struct {
+	ViewPlane ViewPlane
+	Pixels    *[][]Color
+	TopLeft   geometry.Point
+	Direction geometry.Vector
+}
+
+type ViewPlane struct {
+	HorizontalResolution int
+	VerticalResolution   int
+	PixelSize            float64
+	Gamma                float64
+	InverseGamma         float64
+}
+
+func (camera *OrthoCamera) GetViewPlane() ViewPlane {
+	return camera.ViewPlane
+}
+
+func (camera *OrthoCamera) GetRays(i, j, samples int) []geometry.Ray {
+	rays := make([]geometry.Ray, samples)
+	for i := 0; i < samples; i++ {
+		var jitter float64 = 0
+		if i > 0 {
+			jitter = random.Float64() - 1
+		}
+		rays[i] = camera.GetRay(i, j, jitter)
+	}
+
+	return rays
+}
+
+func (camera *OrthoCamera) GetRay(i, j int, jitter float64) geometry.Ray {
+	origin := geometry.Point{
+		camera.ViewPlane.PixelSize * ((float64)(i) - (0.5 * (float64)(camera.ViewPlane.HorizontalResolution-1)) + jitter),
+		camera.ViewPlane.PixelSize * ((float64)(j) - (0.5 * (float64)(camera.ViewPlane.VerticalResolution-1)) + jitter),
+		100,
+	}
+	return geometry.Ray{Origin: origin, Vector: camera.Direction}
+}
+
+func (camera *OrthoCamera) GetPixels() *[][]Color {
+	return camera.Pixels
+}
+
+func (camera *OrthoCamera) SetPixel(i, j int, color Color) {
+	if camera.ViewPlane.Gamma != 1 {
+		color = Pow(color, camera.ViewPlane.InverseGamma)
+	}
+	(*camera.Pixels)[i][j] = color
+}
+
+/*
 func GetPoint(camera *Camera, pixelI int, pixelJ int) geometry.Point {
 	v := geometry.Add(
 		geometry.ScalarProduct(camera.unitX, float64(pixelI)),
@@ -32,3 +86,4 @@ func MakeCamera(bottomLeftCorner, bottomRightCorner, topLeftCorner geometry.Poin
 		Pixels: &pixels,
 	}
 }
+*/

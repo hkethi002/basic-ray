@@ -1,5 +1,7 @@
 package render
 
+/*
+
 import (
 	geometry "basic-ray/pkg/geometry"
 	"math"
@@ -120,3 +122,4 @@ func DiffuseShader(receiveVector geometry.Vector, photons []*Photon, triangle *g
 }
 
 // Refraction for transparent
+*/
