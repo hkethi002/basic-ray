@@ -35,12 +35,12 @@ func (camera *OrthoCamera) GetViewPlane() ViewPlane {
 
 func (camera *OrthoCamera) GetRays(i, j, samples int) []*geometry.Ray {
 	rays := make([]*geometry.Ray, samples)
-	for i := 0; i < samples; i++ {
+	for s := 0; s < samples; s++ {
 		var jitter float64 = 0
-		if i > 0 {
-			jitter = random.Float64() - 1
+		if s > 0 {
+			jitter = random.Float64() - 0.5
 		}
-		rays[i] = camera.GetRay(i, j, jitter)
+		rays[s] = camera.GetRay(i, j, jitter)
 	}
 
 	return rays

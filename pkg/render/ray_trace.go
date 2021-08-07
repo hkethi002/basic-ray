@@ -50,32 +50,25 @@ func renderPixels(objects []GeometricObject, lightSources []LightSource, samples
 	for i := 0; i < viewPlane.HorizontalResolution; i++ {
 		for j := 0; j < viewPlane.VerticalResolution; j++ {
 			jobs <- true
-			ray := camera.GetSingleRay(i, j)
-			go renderPixel(&ray, objects, lightSources, camera, i, j, progress, jobs)
+			rays := camera.GetRays(i, j, samples)
+			go renderPixel(rays, objects, lightSources, camera, i, j, progress, jobs)
 		}
 	}
 }
 
-func renderPixel(ray *geometry.Ray, objects []GeometricObject, lightSources []LightSource, camera Camera, i, j int, progress chan<- bool, jobs <-chan bool) {
-	// var secondaryWeight float64 = 0.5 / (float64)(len(rays)-1)
-	// var weight float64
-	// finalColor := Color{0, 0, 0}
-	// for i, ray := range rays {
-	// 	light := Trace(ray, objects, lightSources, 0)
-	// 	if i > 0 {
-	// 		finalColor[0] += light.rgb[0] * secondaryWeight
-	// 		finalColor[1] += light.rgb[1] * secondaryWeight
-	// 		finalColor[2] += light.rgb[2] * secondaryWeight
-	// 	} else {
-	// 		weight = 0.5
-	// 		finalColor[0] += light.rgb[0] * weight
-	// 		finalColor[1] += light.rgb[1] * weight
-	// 		finalColor[2] += light.rgb[2] * weight
-	// 	}
+func renderPixel(rays []*geometry.Ray, objects []GeometricObject, lightSources []LightSource, camera Camera, i, j int, progress chan<- bool, jobs <-chan bool) {
+	var secondaryWeight float64
+	secondaryWeight = 1.0 / (float64)(len(rays))
+	finalColor := Color{0, 0, 0}
+	for _, ray := range rays {
+		light := Trace(ray, objects, lightSources, 0)
+		finalColor[0] += light.rgb[0] * secondaryWeight
+		finalColor[1] += light.rgb[1] * secondaryWeight
+		finalColor[2] += light.rgb[2] * secondaryWeight
 
-	// }
-	light := Trace(ray, objects, lightSources, 0)
-	camera.SetPixel(i, j, light.rgb) // GetWeightedColor()
+	}
+	// light := Trace(ray, objects, lightSources, 0)
+	camera.SetPixel(i, j, finalColor) // GetWeightedColor()
 	// complete job
 	<-jobs
 	// report progress
