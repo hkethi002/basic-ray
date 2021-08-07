@@ -71,13 +71,10 @@ func RenderScene(output string, samples int) {
 
 	var sampler render.Sampler
 	if samples == 1 {
-		sampler = &render.RegularSampler{BaseSampler: render.BaseSampler{NumberOfSamples: 9, NumberOfSets: 83}}
-		sampler.(*render.RegularSampler).ShuffleIndexes()
+		sampler = &render.RegularSampler{BaseSampler: render.BaseSampler{NumberOfSamples: 1, NumberOfSets: 1}}
 		sampler.(*render.RegularSampler).GenerateSamples()
 	} else {
-		sampler = &render.JitteredPointSampler{BaseSampler: render.BaseSampler{NumberOfSamples: 9, NumberOfSets: 83}}
-		sampler.(*render.JitteredPointSampler).ShuffleIndexes()
-		sampler.(*render.JitteredPointSampler).GenerateSamples()
+		sampler = render.CreateJitteredSampler(samples, 83)
 	}
 	viewPlane := render.ViewPlane{HorizontalResolution: 400, VerticalResolution: 400, PixelSize: 1, Gamma: 1, Sampler: sampler}
 
