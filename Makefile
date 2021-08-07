@@ -3,4 +3,4 @@ all:
 	cp main /Users/harshakethineni/go/bin/basic-ray
 
 clean:
-	rm basic-ray
+	rm /Users/harshakethineni/go/bin/basic-ray
