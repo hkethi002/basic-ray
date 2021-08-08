@@ -5,7 +5,6 @@ import (
 )
 
 type Camera interface {
-	GetRay(i, j int, jitter geometry.Point2D) *geometry.Ray
 	GetRays(i, j, samples int) []*geometry.Ray
 	GetPixels() *[][]Color
 	SetPixel(i, j int, color Color)
@@ -39,6 +38,22 @@ type PinholeCamera struct {
 	u                   geometry.Vector
 	v                   geometry.Vector
 	w                   geometry.Vector
+	BaseCamera
+}
+
+type ThinLensCamera struct {
+	Eye                 geometry.Point
+	Zoom                float64
+	LookPoint           geometry.Point
+	UpVector            geometry.Vector
+	DistanceToViewPlane float64
+	ExposureTime        float64
+	u                   geometry.Vector
+	v                   geometry.Vector
+	w                   geometry.Vector
+	Sampler             Sampler
+	LensRadius          float64
+	FocalDistance       float64
 	BaseCamera
 }
 
@@ -170,6 +185,68 @@ func (camera *PinholeCamera) GetRay(i, j int, jitter geometry.Point2D) *geometry
 }
 
 func (camera *PinholeCamera) GetRays(i, j, samples int) []*geometry.Ray {
+	rays := make([]*geometry.Ray, samples)
+	jitter := geometry.Point2D{0, 0}
+	for s := 0; s < samples; s++ {
+		if s > 0 {
+			jitter = camera.ViewPlane.Sampler.SampleUnitSquare()
+		}
+		rays[s] = camera.GetRay(i, j, jitter)
+	}
+
+	return rays
+}
+
+func (camera *ThinLensCamera) Initialize() {
+	if (camera.UpVector == geometry.Vector{0, 0, 0}) {
+		camera.UpVector[1] = 1
+	}
+	if camera.ExposureTime == 0 {
+		camera.ExposureTime = 1.0
+	}
+	if camera.Zoom == 0 {
+		camera.Zoom = 1.0
+	}
+	camera.ViewPlane.PixelSize = camera.ViewPlane.PixelSize / camera.Zoom
+	camera.w = geometry.Normalize(geometry.CreateVector(camera.Eye, camera.LookPoint))
+	camera.u = geometry.Normalize(geometry.CrossProduct(camera.UpVector, camera.w))
+	camera.v = geometry.CrossProduct(camera.w, camera.u)
+}
+
+func (camera *ThinLensCamera) GetRay(i, j int, jitter geometry.Point2D) *geometry.Ray {
+	x := camera.ViewPlane.PixelSize * ((float64)(i) - (0.5*float64(camera.ViewPlane.HorizontalResolution) + jitter[0]))
+	y := camera.ViewPlane.PixelSize * ((float64)(j) - (0.5*float64(camera.ViewPlane.VerticalResolution) + jitter[1]))
+
+	lensSample := camera.Sampler.SampleUnitCircle()
+	lensX := camera.LensRadius * lensSample[0]
+	lensY := camera.LensRadius * lensSample[1]
+
+	focalX := x * camera.FocalDistance / camera.DistanceToViewPlane
+	focalY := y * camera.FocalDistance / camera.DistanceToViewPlane
+
+	vector := geometry.Subtract(
+		geometry.Add(
+			geometry.ScalarProduct(camera.u, focalX-lensX),
+			geometry.ScalarProduct(camera.v, focalY-lensY),
+		),
+		geometry.ScalarProduct(camera.w, camera.FocalDistance),
+	)
+
+	origin := geometry.Translate(
+		camera.Eye,
+		geometry.Add(
+			geometry.ScalarProduct(camera.u, lensX),
+			geometry.ScalarProduct(camera.v, lensY),
+		),
+	)
+
+	return &geometry.Ray{
+		Origin: origin,
+		Vector: geometry.Normalize(vector),
+	}
+}
+
+func (camera *ThinLensCamera) GetRays(i, j, samples int) []*geometry.Ray {
 	rays := make([]*geometry.Ray, samples)
 	jitter := geometry.Point2D{0, 0}
 	for s := 0; s < samples; s++ {

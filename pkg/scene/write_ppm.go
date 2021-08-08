@@ -4,6 +4,9 @@ import (
 	render "basic-ray/pkg/render"
 	"bufio"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"math"
 	"os"
 )
@@ -14,8 +17,38 @@ func check(err error) {
 	}
 }
 
+func WritePNG(camera render.Camera, filepath string) {
+	height := camera.GetViewPlane().VerticalResolution
+	width := camera.GetViewPlane().HorizontalResolution
+	pixels := *camera.GetPixels()
+	weight := 255.0
+
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			img.Set(width-x-1, height-y-1, color.NRGBA{
+				R: (uint8)(pixels[x][y][0] * weight),
+				G: (uint8)(pixels[x][y][1] * weight),
+				B: (uint8)(pixels[x][y][2] * weight),
+				A: 255,
+			})
+		}
+	}
+	f, err := os.Create(filepath)
+	check(err)
+
+	if err := png.Encode(f, img); err != nil {
+		f.Close()
+		check(err)
+	}
+
+	if err := f.Close(); err != nil {
+		check(err)
+	}
+}
+
 func WriteImage(camera render.Camera, filePath string) {
-	image := flip(transpose(*camera.GetPixels()))
+	image := transpose(*camera.GetPixels())
 	fmt.Println(image[0][0])
 	fileObject, err := os.Create(filePath)
 	check(err)
@@ -28,6 +61,7 @@ func WriteImage(camera render.Camera, filePath string) {
 
 	writer.WriteString("255\n")
 	weight := 255.0 // / findMax(image)
+
 	for i := 0; i < len(image); i++ {
 		for j := 0; j < len(image[i]); j++ {
 			color := image[i][j]

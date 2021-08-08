@@ -61,13 +61,15 @@ func main() {
 }
 */
 func RenderScene(output string, samples int) {
-	objects := make([]render.GeometricObject, 3)
+	objects := make([]render.GeometricObject, 4)
 	objects[0] = &render.Sphere{Center: geometry.Point{0, -25, 0}, Radius: 80}
 	objects[0].(*render.Sphere).Material.Color = render.Color{0, 0, 1}
 	objects[1] = &render.Sphere{Center: geometry.Point{0, 30, 0}, Radius: 60}
 	objects[1].(*render.Sphere).Material.Color = render.Color{1, 1, 0}
-	objects[2] = &render.Plane{Point: geometry.Point{0, -25, 0}, Normal: geometry.Vector{0, 1, 0}}
+	objects[2] = &render.Plane{Point: geometry.Point{0, -85, 0}, Normal: geometry.Vector{0, 1, 0}}
 	objects[2].(*render.Plane).Material.Color = render.Color{0, 0.3, 0}
+	objects[3] = &render.Sphere{Center: geometry.Point{-400, -25, 500}, Radius: 80}
+	objects[3].(*render.Sphere).Material.Color = render.Color{1, 0, 0}
 
 	var sampler render.Sampler
 	if samples == 1 {
@@ -82,12 +84,15 @@ func RenderScene(output string, samples int) {
 	for i := range pixels {
 		pixels[i] = make([]render.Color, viewPlane.VerticalResolution)
 	}
-	camera := render.PinholeCamera{
+	camera := render.ThinLensCamera{
 		DistanceToViewPlane: 50,
 		LookPoint:           geometry.Point{0, 25, 0},
 		Eye:                 geometry.Point{0, 25, -200},
 		UpVector:            geometry.Vector{0, 1, 0},
 		BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
+		FocalDistance:       700,
+		LensRadius:          10,
+		Sampler:             sampler,
 	}
 	camera.Initialize()
 
@@ -95,5 +100,5 @@ func RenderScene(output string, samples int) {
 
 	render.MultiThreadedMain(&camera, lightSources, objects, samples)
 
-	sceneIo.WriteImage(&camera, output)
+	sceneIo.WritePNG(&camera, output)
 }

@@ -23,6 +23,10 @@ type BaseSampler struct {
 	shuffledIndexes   []int
 	Count             int
 	jump              int
+	CircleCount       int
+	circleJump        int
+	HemisphereCount   int
+	HemisphereJump    int
 }
 
 func (sampler *BaseSampler) ShuffleIndexes() {
@@ -85,11 +89,11 @@ func (sampler *BaseSampler) MapSamplesToCircle() {
 }
 
 func (sampler *BaseSampler) SampleUnitCircle() geometry.Point2D {
-	if sampler.Count%sampler.NumberOfSamples == 0 {
+	if sampler.CircleCount%sampler.NumberOfSamples == 0 {
 		sampler.jump = (rand.Int() % sampler.NumberOfSets) * sampler.NumberOfSamples
 	}
-	sampler.Count++
-	return sampler.CircleSamples[sampler.jump+sampler.shuffledIndexes[sampler.jump+(sampler.Count%sampler.NumberOfSamples)]]
+	sampler.CircleCount++
+	return sampler.CircleSamples[sampler.jump+sampler.shuffledIndexes[sampler.jump+(sampler.CircleCount%sampler.NumberOfSamples)]]
 }
 
 func (sampler *BaseSampler) SampleUnitSquare() geometry.Point2D {
