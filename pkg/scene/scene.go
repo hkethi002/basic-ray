@@ -14,7 +14,7 @@ type CameraSpec struct {
 	Eye         geometry.Point `json:"eye"`
 	BottomLeft  geometry.Point `json:"bottomLeft"`
 	BottomRight geometry.Point `json:"bottomRight"`
-	TopLeft     geometry.Point `json:"topLeft"`
+	Center      geometry.Point `json:"topLeft"`
 	Resolution  [2]int         `json:"resolution"`
 }
 
@@ -38,7 +38,7 @@ func (scene *Scene) GetComponents() (*render.Camera, []*geometry.Object, []rende
 	camera := render.MakeCamera(
 		scene.Camera.BottomLeft,
 		scene.Camera.BottomRight,
-		scene.Camera.TopLeft,
+		scene.Camera.Center,
 		scene.Camera.Resolution[0],
 		scene.Camera.Resolution[1],
 	)

@@ -63,10 +63,10 @@ func main() {
 func RenderScene(output string, samples int) {
 	objects := make([]render.GeometricObject, 3)
 	objects[0] = &render.Sphere{Center: geometry.Point{0, -25, 0}, Radius: 80}
-	objects[0].(*render.Sphere).Material.Color = render.Color{1, 0, 0}
+	objects[0].(*render.Sphere).Material.Color = render.Color{0, 0, 1}
 	objects[1] = &render.Sphere{Center: geometry.Point{0, 30, 0}, Radius: 60}
 	objects[1].(*render.Sphere).Material.Color = render.Color{1, 1, 0}
-	objects[2] = &render.Plane{Point: geometry.Point{0, -25, 0}, Normal: geometry.Vector{0, 1, -1}}
+	objects[2] = &render.Plane{Point: geometry.Point{0, -25, 0}, Normal: geometry.Vector{0, 1, 0}}
 	objects[2].(*render.Plane).Material.Color = render.Color{0, 0.3, 0}
 
 	var sampler render.Sampler
@@ -76,13 +76,20 @@ func RenderScene(output string, samples int) {
 	} else {
 		sampler = render.CreateJitteredSampler(samples, 83, 0)
 	}
-	viewPlane := render.ViewPlane{HorizontalResolution: 200, VerticalResolution: 200, PixelSize: 2, Gamma: 1, Sampler: sampler}
+	viewPlane := render.ViewPlane{HorizontalResolution: 400, VerticalResolution: 400, PixelSize: 0.25, Gamma: 1, Sampler: sampler}
 
 	pixels := make([][]render.Color, viewPlane.HorizontalResolution)
 	for i := range pixels {
 		pixels[i] = make([]render.Color, viewPlane.VerticalResolution)
 	}
-	camera := render.OrthoCamera{ViewPlane: viewPlane, TopLeft: geometry.Point{0, -25, -160}, Direction: geometry.Vector{0, 0, 1}, Pixels: &pixels}
+	camera := render.PinholeCamera{
+		DistanceToViewPlane: 50,
+		LookPoint:           geometry.Point{0, 25, 0},
+		Eye:                 geometry.Point{0, 25, -200},
+		UpVector:            geometry.Vector{0, 1, 0},
+		BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
+	}
+	camera.Initialize()
 
 	var lightSources []render.LightSource
 
