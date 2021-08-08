@@ -6,6 +6,8 @@ import (
 	"math/rand"
 )
 
+const PI = 3.14159265358
+
 type Sampler interface {
 	GenerateSamples()
 	SampleUnitSquare() geometry.Point2D
@@ -13,13 +15,14 @@ type Sampler interface {
 }
 
 type BaseSampler struct {
-	NumberOfSamples int
-	NumberOfSets    int
-	Samples         []geometry.Point2D
-	CircleSamples   []geometry.Point2D
-	shuffledIndexes []int
-	Count           int
-	jump            int
+	NumberOfSamples   int
+	NumberOfSets      int
+	Samples           []geometry.Point2D
+	CircleSamples     []geometry.Point2D
+	HemisphereSamples []geometry.Point
+	shuffledIndexes   []int
+	Count             int
+	jump              int
 }
 
 func (sampler *BaseSampler) ShuffleIndexes() {
@@ -31,6 +34,19 @@ func (sampler *BaseSampler) ShuffleIndexes() {
 		}
 		rand.Shuffle(len(indexes), func(i, j int) { indexes[i], indexes[j] = indexes[j], indexes[i] })
 		sampler.shuffledIndexes = append(sampler.shuffledIndexes, indexes...)
+	}
+}
+
+func (sampler *BaseSampler) MapSamplesToHemisphere(e float64) {
+	sampler.HemisphereSamples = make([]geometry.Point, len(sampler.Samples))
+	for i, _ := range sampler.HemisphereSamples {
+		cos_phi := math.Cos(2.0 * PI * sampler.Samples[i][0])
+		sin_phi := math.Sin(2.0 * PI * sampler.Samples[i][0])
+		cos_theta := math.Pow((1.0 - sampler.Samples[i][1]), 1/(e+1.0))
+		sin_theta := math.Sqrt(1.0 - cos_theta*cos_theta)
+		sampler.HemisphereSamples[i][0] = sin_theta * cos_phi
+		sampler.HemisphereSamples[i][1] = sin_theta * sin_phi
+		sampler.HemisphereSamples[i][2] = cos_theta
 	}
 }
 
@@ -106,12 +122,13 @@ func (sampler *JitteredPointSampler) GenerateSamples() {
 	}
 }
 
-func CreateJitteredSampler(numberOfSamples, numberOfSets int) *JitteredPointSampler {
+func CreateJitteredSampler(numberOfSamples, numberOfSets int, e float64) *JitteredPointSampler {
 	sampler := &JitteredPointSampler{BaseSampler: BaseSampler{NumberOfSamples: numberOfSamples, NumberOfSets: numberOfSets}}
 
 	sampler.ShuffleIndexes()
 	sampler.GenerateSamples()
 	sampler.MapSamplesToCircle()
+	sampler.MapSamplesToHemisphere(e)
 	return sampler
 }
 

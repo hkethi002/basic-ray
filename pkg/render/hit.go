@@ -23,7 +23,7 @@ func (plane *Plane) Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) bo
 }
 
 func (sphere *Sphere) Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) bool {
-	centerToOrigin := geometry.CreateVector(sphere.Center, ray.Origin)
+	centerToOrigin := geometry.CreateVector(ray.Origin, sphere.Center)
 	a := geometry.DotProduct(ray.Vector, ray.Vector)
 	b := geometry.DotProduct(geometry.ScalarProduct(centerToOrigin, 2), ray.Vector)
 	c := geometry.DotProduct(centerToOrigin, centerToOrigin) - (sphere.Radius * sphere.Radius)

@@ -7,7 +7,6 @@ import (
 type Camera interface {
 	GetRay(i, j int, jitter geometry.Point2D) *geometry.Ray
 	GetRays(i, j, samples int) []*geometry.Ray
-	GetSingleRay(i, j int) geometry.Ray
 	GetPixels() *[][]Color
 	SetPixel(i, j int, color Color)
 	GetViewPlane() ViewPlane
@@ -46,22 +45,14 @@ func (camera *OrthoCamera) GetRays(i, j, samples int) []*geometry.Ray {
 	return rays
 }
 
+// TODO: Figure out actual projection mapping
 func (camera *OrthoCamera) GetRay(i, j int, jitter geometry.Point2D) *geometry.Ray {
 	origin := geometry.Point{
-		camera.ViewPlane.PixelSize * ((float64)(i) - (0.5 * (float64)(camera.ViewPlane.HorizontalResolution-1)) + jitter[0]),
-		camera.ViewPlane.PixelSize * ((float64)(j) - (0.5 * (float64)(camera.ViewPlane.VerticalResolution-1)) + jitter[1]),
-		100,
+		camera.TopLeft[0] + camera.ViewPlane.PixelSize*((float64)(i)-(0.5*(float64)(camera.ViewPlane.HorizontalResolution-1))+jitter[0]),
+		camera.TopLeft[1] + camera.ViewPlane.PixelSize*((float64)(j)-(0.5*(float64)(camera.ViewPlane.VerticalResolution-1))+jitter[1]),
+		camera.TopLeft[2],
 	}
-	return &geometry.Ray{Origin: origin, Vector: camera.Direction}
-}
-
-func (camera *OrthoCamera) GetSingleRay(i, j int) geometry.Ray {
-	origin := geometry.Point{
-		camera.ViewPlane.PixelSize * ((float64)(i) - (0.5 * (float64)(camera.ViewPlane.HorizontalResolution-1))),
-		camera.ViewPlane.PixelSize * ((float64)(j) - (0.5 * (float64)(camera.ViewPlane.VerticalResolution-1))),
-		100,
-	}
-	return geometry.Ray{Origin: origin, Vector: camera.Direction}
+	return &geometry.Ray{Origin: origin, Vector: geometry.Vector{camera.Direction[0], camera.Direction[1], camera.Direction[2]}}
 }
 
 func (camera *OrthoCamera) GetPixels() *[][]Color {
