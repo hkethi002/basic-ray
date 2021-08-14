@@ -21,7 +21,7 @@ func WritePNG(camera render.Camera, filepath string) {
 	height := camera.GetViewPlane().VerticalResolution
 	width := camera.GetViewPlane().HorizontalResolution
 	pixels := *camera.GetPixels()
-	weight := 255.0
+	weight := 255.0 / findMax(pixels)
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	for y := 0; y < height; y++ {

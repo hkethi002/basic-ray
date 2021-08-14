@@ -61,15 +61,73 @@ func main() {
 }
 */
 func RenderScene(output string, samples int) {
-	objects := make([]render.GeometricObject, 4)
-	objects[0] = &render.Sphere{Center: geometry.Point{0, -25, 0}, Radius: 80}
-	objects[0].(*render.Sphere).Material.Color = render.Color{0, 0, 1}
-	objects[1] = &render.Sphere{Center: geometry.Point{0, 30, 0}, Radius: 60}
-	objects[1].(*render.Sphere).Material.Color = render.Color{1, 1, 0}
-	objects[2] = &render.Plane{Point: geometry.Point{0, -85, 0}, Normal: geometry.Vector{0, 1, 0}}
-	objects[2].(*render.Plane).Material.Color = render.Color{0, 0.3, 0}
+	objects := make([]render.GeometricObject, 6)
+	objects[0] = &render.Sphere{Center: geometry.Point{0, 25, 0}, Radius: 80}
+	objects[0].(*render.Sphere).Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.25,
+			DiffuseColor:                 render.Color{1, 0, 1},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 0, 1},
+		},
+	}
+	objects[1] = &render.Sphere{Center: geometry.Point{230, 30, 0}, Radius: 60}
+	objects[1].(*render.Sphere).Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.25,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+	}
+	objects[2] = &render.Plane{Point: geometry.Point{0, -150, 0}, Normal: geometry.Vector{0, 1, 0}}
+	objects[2].(*render.Plane).Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.15,
+			DiffuseColor:                 render.Color{.5, .5, .5},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.45,
+			DiffuseColor:                 render.Color{.5, .5, .5},
+		},
+	}
 	objects[3] = &render.Sphere{Center: geometry.Point{-400, -25, 500}, Radius: 80}
-	objects[3].(*render.Sphere).Material.Color = render.Color{1, 0, 0}
+	objects[3].(*render.Sphere).Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.25,
+			DiffuseColor:                 render.Color{1, 0, 0},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 0, 0},
+		},
+	}
+	objects[4] = &render.Sphere{Center: geometry.Point{300, 150, 500}, Radius: 80}
+	objects[4].(*render.Sphere).Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.25,
+			DiffuseColor:                 render.Color{1, 1, 1},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 1, 1},
+		},
+	}
+	objects[5] = &render.Sphere{Center: geometry.Point{100, -50, -190}, Radius: 80}
+	objects[5].(*render.Sphere).Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.25,
+			DiffuseColor:                 render.Color{1, 0.5, 0.5},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 0.5, 0.5},
+		},
+	}
 
 	var sampler render.Sampler
 	if samples == 1 {
@@ -78,27 +136,52 @@ func RenderScene(output string, samples int) {
 	} else {
 		sampler = render.CreateJitteredSampler(samples, 83, 0)
 	}
-	viewPlane := render.ViewPlane{HorizontalResolution: 400, VerticalResolution: 400, PixelSize: 0.25, Gamma: 1, Sampler: sampler}
+	viewPlane := render.ViewPlane{HorizontalResolution: 4096, VerticalResolution: 2160, PixelSize: 0.25, Gamma: 1, Sampler: sampler}
 
 	pixels := make([][]render.Color, viewPlane.HorizontalResolution)
 	for i := range pixels {
 		pixels[i] = make([]render.Color, viewPlane.VerticalResolution)
 	}
 	camera := render.ThinLensCamera{
-		DistanceToViewPlane: 50,
+		DistanceToViewPlane: 300,
 		LookPoint:           geometry.Point{0, 25, 0},
-		Eye:                 geometry.Point{0, 25, -200},
+		Eye:                 geometry.Point{0, 25, -500},
 		UpVector:            geometry.Vector{0, 1, 0},
 		BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-		FocalDistance:       700,
+		FocalDistance:       500,
+		Zoom:                1,
 		LensRadius:          10,
 		Sampler:             sampler,
 	}
+	// camera := render.PinholeCamera{
+	// 	DistanceToViewPlane: 650.0,
+	// 	LookPoint:           geometry.Point{-5, 0, 0},
+	// 	Eye:                 geometry.Point{0, 0, 500},
+	// 	UpVector:            geometry.Vector{0, 1, 0},
+	// 	BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
+	// }
+
 	camera.Initialize()
 
 	var lightSources []render.LightSource
+	light := render.PointLight{
+		Location:   geometry.Point{100, 50, -150},
+		BasicLight: render.BasicLight{Color: render.WHITE, RadianceScalingFactor: 2.0}}
+	// light := render.DirectionalLight{
+	// 	Direction:  geometry.Vector{0, -1, 0},
+	// 	BasicLight: render.BasicLight{Color: render.WHITE, RadianceScalingFactor: 3.0}}
+	light.Initialize()
+	lightSources = append(lightSources, &light)
 
-	render.MultiThreadedMain(&camera, lightSources, objects, samples)
+	world := render.World{Camera: &camera, Lights: lightSources, Objects: objects}
+
+	ambientLight := render.AmbientLight{
+		BasicLight: render.BasicLight{RadianceScalingFactor: 1.0},
+	}
+	ambientLight.Initialize()
+	world.AmbientLight = &ambientLight
+
+	render.MultiThreadedMain(&world, samples)
 
 	sceneIo.WritePNG(&camera, output)
 }

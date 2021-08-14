@@ -26,11 +26,11 @@ func Main(origin geometry.Point, lightSources []LightSource, camera *Camera, obj
 }
 */
 
-func MultiThreadedMain(camera Camera, lightSources []LightSource, objects []GeometricObject, samples int) {
+func MultiThreadedMain(world *World, samples int) {
 	progress := make(chan bool, 20)
-	totalCount := len(*camera.GetPixels()) * len((*camera.GetPixels())[0])
+	totalCount := len(*world.Camera.GetPixels()) * len((*world.Camera.GetPixels())[0])
 	bar := pb.StartNew(totalCount)
-	go renderPixels(objects, lightSources, samples, camera, progress)
+	go renderPixels(world, samples, progress)
 	reportProgress(bar, progress, totalCount)
 	close(progress)
 	bar.Finish()
@@ -44,56 +44,58 @@ func reportProgress(bar *pb.ProgressBar, progress <-chan bool, totalCount int) {
 	}
 }
 
-func renderPixels(objects []GeometricObject, lightSources []LightSource, samples int, camera Camera, progress chan<- bool) {
+func renderPixels(world *World, samples int, progress chan<- bool) {
 	jobs := make(chan bool, 5)
-	viewPlane := camera.GetViewPlane()
+	viewPlane := world.Camera.GetViewPlane()
 	for i := 0; i < viewPlane.HorizontalResolution; i++ {
 		for j := 0; j < viewPlane.VerticalResolution; j++ {
 			jobs <- true
-			rays := camera.GetRays(i, j, samples)
-			go renderPixel(rays, objects, lightSources, camera, i, j, progress, jobs)
+			rays := world.Camera.GetRays(i, j, samples)
+			go renderPixel(rays, world, i, j, progress, jobs)
 		}
 	}
 }
 
-func renderPixel(rays []*geometry.Ray, objects []GeometricObject, lightSources []LightSource, camera Camera, i, j int, progress chan<- bool, jobs <-chan bool) {
+func renderPixel(rays []*geometry.Ray, world *World, i, j int, progress chan<- bool, jobs <-chan bool) {
 	var secondaryWeight float64
 	secondaryWeight = 1.0 / (float64)(len(rays))
 	finalColor := Color{0, 0, 0}
 	for _, ray := range rays {
-		light := Trace(ray, objects, lightSources, 0)
-		finalColor[0] += light.rgb[0] * secondaryWeight
-		finalColor[1] += light.rgb[1] * secondaryWeight
-		finalColor[2] += light.rgb[2] * secondaryWeight
+		color := Trace(ray, world, 0)
+		finalColor[0] += color[0] * secondaryWeight
+		finalColor[1] += color[1] * secondaryWeight
+		finalColor[2] += color[2] * secondaryWeight
 
 	}
 	// light := Trace(ray, objects, lightSources, 0)
-	camera.SetPixel(i, j, finalColor) // GetWeightedColor()
+	world.Camera.SetPixel(i, j, finalColor) // GetWeightedColor()
 	// complete job
 	<-jobs
 	// report progress
 	progress <- true
 }
 
-func Trace(ray *geometry.Ray, objects []GeometricObject, lightSources []LightSource, depth int) Photon {
-	receiveVector := geometry.Normalize(geometry.ScalarProduct(ray.Vector, -1))
-	photon := Photon{vector: receiveVector}
+func Trace(ray *geometry.Ray, world *World, depth int) Color {
+	// receiveVector := geometry.Normalize(geometry.ScalarProduct(ray.Vector, -1))
+	color := Color{}
 	var t float64
-	shadeRec := ShadeRec{}
+	shadeRec := ShadeRec{World: world}
 	tmin := float64(math.Inf(1))
+	t = float64(math.Inf(1))
 
-	for _, object := range objects {
+	for _, object := range world.Objects {
 		intersects := object.Hit(ray, &t, &shadeRec)
 		if !intersects || t > tmin {
 			continue
 		}
 		tmin = t
 		shadeRec.ObjectHit = true
-		shadeRec.RGBColor = object.GetColor()
+		shadeRec.HitPoint = geometry.Translate(ray.Origin, geometry.ScalarProduct(ray.Vector, t))
+		shadeRec.Material = object.GetMaterial()
 	}
 
 	if shadeRec.ObjectHit {
-		photon.rgb = shadeRec.RGBColor
+		return shadeRec.Material.Shade(&shadeRec)
 	}
-	return photon
+	return color
 }

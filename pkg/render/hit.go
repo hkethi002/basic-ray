@@ -12,9 +12,13 @@ func (plane *Plane) Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) bo
 	}
 	t := geometry.DotProduct(geometry.CreateVector(plane.Point, ray.Origin), plane.Normal) / cos
 
-	if t > plane.KEpsilon {
+	if t > plane.KEpsilon && t < *tmin {
 		*tmin = t
-		shadeRec.Normal = plane.Normal
+		if cos > 0 {
+			shadeRec.Normal = geometry.ScalarProduct(plane.Normal, -1)
+		} else {
+			shadeRec.Normal = plane.Normal
+		}
 		shadeRec.LocalHitPoint = geometry.Translate(ray.Origin, geometry.ScalarProduct(ray.Vector, t))
 		return true
 	} else {
@@ -34,18 +38,18 @@ func (sphere *Sphere) Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) 
 	}
 	e = math.Sqrt(discriminant)
 	t = (-b - e) / (2 * a)
-	if t > sphere.KEpsilon {
+	if t > sphere.KEpsilon && t < *tmin {
 		*tmin = t
-		shadeRec.Normal = geometry.Normalize(centerToOrigin)
+		shadeRec.Normal = geometry.ScalarProduct(geometry.Add(centerToOrigin, geometry.ScalarProduct(ray.Vector, t)), 1.0/sphere.Radius)
 		shadeRec.LocalHitPoint = geometry.Translate(ray.Origin, geometry.ScalarProduct(ray.Vector, t))
 		return true
 	}
 
 	t = (-b + e) / (2 * a)
 
-	if t > sphere.KEpsilon {
+	if t > sphere.KEpsilon && t < *tmin {
 		*tmin = t
-		shadeRec.Normal = geometry.Normalize(centerToOrigin)
+		shadeRec.Normal = geometry.ScalarProduct(geometry.Add(centerToOrigin, geometry.ScalarProduct(ray.Vector, t)), 1.0/sphere.Radius)
 		shadeRec.LocalHitPoint = geometry.Translate(ray.Origin, geometry.ScalarProduct(ray.Vector, t))
 		return true
 	}

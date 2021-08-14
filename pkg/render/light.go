@@ -14,21 +14,73 @@ type Photon struct {
 }
 
 type LightSource interface {
-	GetPhoton(destination geometry.Point) Photon
-	GetDistance(destination geometry.Point) float64
+	GetDirection(shadeRec *ShadeRec) geometry.Vector
+	IncidentRadiance(shadeRec *ShadeRec) Color
 }
 
-type DeltaLight struct {
+type BasicLight struct {
+	Shadows               bool
+	RadianceScalingFactor float64
+	Color                 Color
+}
+
+type AmbientLight struct {
+	BasicLight
+}
+
+func (lightSource *AmbientLight) GetDirection(shadeRec *ShadeRec) geometry.Vector {
+	return geometry.Vector{0, 0, 0}
+}
+
+func (lightSource *AmbientLight) IncidentRadiance(shadeRec *ShadeRec) Color {
+	return ScalarProduct(lightSource.Color, lightSource.RadianceScalingFactor)
+}
+
+func (lightSource *BasicLight) Initialize() {
+	if lightSource.Color == BLACK {
+		lightSource.Color = WHITE
+	}
+	if lightSource.RadianceScalingFactor == 0 {
+		lightSource.RadianceScalingFactor = 1.0
+	}
+}
+
+type PointLight struct {
 	Location geometry.Point
-	RGB      Color
+	BasicLight
+}
+
+func (lightSource *PointLight) GetDirection(shadeRec *ShadeRec) geometry.Vector {
+	return geometry.Normalize(geometry.CreateVector(
+		lightSource.Location,
+		shadeRec.HitPoint,
+	))
+}
+
+func (lightSource *PointLight) IncidentRadiance(shadeRec *ShadeRec) Color {
+	return ScalarProduct(lightSource.Color, lightSource.RadianceScalingFactor)
 }
 
 type DirectionalLight struct {
 	Direction geometry.Vector
-	RGB       Color
+	BasicLight
+}
+
+func (lightSource *DirectionalLight) GetDirection(shadeRec *ShadeRec) geometry.Vector {
+	return geometry.ScalarProduct(lightSource.Direction, -1)
+}
+
+func (lightSource *DirectionalLight) IncidentRadiance(shadeRec *ShadeRec) Color {
+	return ScalarProduct(lightSource.Color, lightSource.RadianceScalingFactor)
 }
 
 /*
+
+type LightSource interface {
+	GetPhoton(destination geometry.Point) Photon
+	GetDistance(destination geometry.Point) float64
+}
+
 func (lightSource *DeltaLight) GetPhoton(destination geometry.Point) Photon {
 	fallOff := math.Pow(lightSource.GetDistance(destination), 2)
 	rgb := Color{

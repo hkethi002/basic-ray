@@ -4,12 +4,14 @@ import (
 	geometry "basic-ray/pkg/geometry"
 )
 
-type World struct {
-}
-
 type ShadeRec struct {
 	ObjectHit     bool
+	Material      Material
+	HitPoint      geometry.Point
 	LocalHitPoint geometry.Point
+	Ray           geometry.Ray
+	depth         int
+	direction     geometry.Vector
 	Normal        geometry.Vector
 	RGBColor      Color  // TODO: Remove this and use material pointers
 	World         *World // What is this?
@@ -17,19 +19,15 @@ type ShadeRec struct {
 
 type GeometricObject interface {
 	Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) bool
-	GetColor() Color
+	GetMaterial() Material
 }
 
 type Mesh struct {
 	Material Material
 }
 
-func (mesh *Mesh) GetColor() Color {
-	return mesh.Material.Color
-}
-
-type Material struct {
-	Color Color
+func (mesh *Mesh) GetMaterial() Material {
+	return mesh.Material
 }
 
 type Plane struct {
