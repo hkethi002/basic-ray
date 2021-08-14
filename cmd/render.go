@@ -65,7 +65,7 @@ func RenderScene(output string, samples int) {
 	objects[0] = &render.Sphere{Center: geometry.Point{0, 25, 0}, Radius: 80}
 	objects[0].(*render.Sphere).Material = &render.PhongMaterial{
 		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.15,
+			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{1, 0, 1},
 		},
 		DiffuseBRDF: &render.LambertianShader{
@@ -81,7 +81,7 @@ func RenderScene(output string, samples int) {
 	objects[1] = &render.Sphere{Center: geometry.Point{230, 30, 0}, Radius: 60}
 	objects[1].(*render.Sphere).Material = &render.PhongMaterial{
 		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.25,
+			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{1, 1, 0},
 		},
 		DiffuseBRDF: &render.LambertianShader{
@@ -97,18 +97,18 @@ func RenderScene(output string, samples int) {
 	objects[2] = &render.Plane{Point: geometry.Point{0, -150, 0}, Normal: geometry.Vector{0, 1, 0}}
 	objects[2].(*render.Plane).Material = &render.MatteMaterial{
 		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.15,
+			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{.5, .5, .5},
 		},
 		DiffuseBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.45,
+			DiffuseReflectionCoefficient: 0.65,
 			DiffuseColor:                 render.Color{.5, .5, .5},
 		},
 	}
 	objects[3] = &render.Sphere{Center: geometry.Point{-400, -25, 500}, Radius: 80}
 	objects[3].(*render.Sphere).Material = &render.MatteMaterial{
 		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.25,
+			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{1, 0, 0},
 		},
 		DiffuseBRDF: &render.LambertianShader{
@@ -119,7 +119,7 @@ func RenderScene(output string, samples int) {
 	objects[4] = &render.Sphere{Center: geometry.Point{300, 150, 500}, Radius: 80}
 	objects[4].(*render.Sphere).Material = &render.MatteMaterial{
 		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.25,
+			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{1, 1, 1},
 		},
 		DiffuseBRDF: &render.LambertianShader{
@@ -130,7 +130,7 @@ func RenderScene(output string, samples int) {
 	objects[5] = &render.Sphere{Center: geometry.Point{100, -50, -190}, Radius: 80}
 	objects[5].(*render.Sphere).Material = &render.MatteMaterial{
 		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.25,
+			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{1, 0.5, 0.5},
 		},
 		DiffuseBRDF: &render.LambertianShader{
@@ -153,24 +153,24 @@ func RenderScene(output string, samples int) {
 	for i := range pixels {
 		pixels[i] = make([]render.Color, viewPlane.VerticalResolution)
 	}
-	camera := render.ThinLensCamera{
+	// camera := render.ThinLensCamera{
+	// 	DistanceToViewPlane: 300,
+	// 	LookPoint:           geometry.Point{0, 25, 0},
+	// 	Eye:                 geometry.Point{0, 25, -500},
+	// 	UpVector:            geometry.Vector{0, 1, 0},
+	// 	BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
+	// 	FocalDistance:       500,
+	// 	Zoom:                1,
+	// 	LensRadius:          10,
+	// 	Sampler:             sampler,
+	// }
+	camera := render.PinholeCamera{
 		DistanceToViewPlane: 300,
 		LookPoint:           geometry.Point{0, 25, 0},
 		Eye:                 geometry.Point{0, 25, -500},
 		UpVector:            geometry.Vector{0, 1, 0},
 		BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-		FocalDistance:       500,
-		Zoom:                1,
-		LensRadius:          10,
-		Sampler:             sampler,
 	}
-	// camera := render.PinholeCamera{
-	// 	DistanceToViewPlane: 650.0,
-	// 	LookPoint:           geometry.Point{-5, 0, 0},
-	// 	Eye:                 geometry.Point{0, 0, 500},
-	// 	UpVector:            geometry.Vector{0, 1, 0},
-	// 	BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-	// }
 
 	camera.Initialize()
 
@@ -184,7 +184,7 @@ func RenderScene(output string, samples int) {
 	light.Initialize()
 	lightSources = append(lightSources, &light)
 
-	world := render.World{Camera: &camera, Lights: lightSources, Objects: objects}
+	world := render.World{Camera: &camera, Lights: lightSources, Objects: objects[:5]}
 
 	ambientLight := render.AmbientLight{
 		BasicLight: render.BasicLight{RadianceScalingFactor: 1.0},
