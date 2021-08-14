@@ -180,7 +180,7 @@ func (camera *PinholeCamera) GetRay(i, j int, jitter geometry.Point2D) *geometry
 
 	return &geometry.Ray{
 		Origin: camera.Eye,
-		Vector: vector,
+		Vector: geometry.Normalize(vector),
 	}
 }
 
