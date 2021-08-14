@@ -91,6 +91,7 @@ func Trace(ray *geometry.Ray, world *World, depth int) Color {
 		tmin = t
 		shadeRec.ObjectHit = true
 		shadeRec.HitPoint = geometry.Translate(ray.Origin, geometry.ScalarProduct(ray.Vector, t))
+		shadeRec.Ray = *ray
 		shadeRec.Material = object.GetMaterial()
 	}
 

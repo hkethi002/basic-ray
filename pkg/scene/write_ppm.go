@@ -17,19 +17,19 @@ func check(err error) {
 	}
 }
 
-func WritePNG(camera render.Camera, filepath string) {
+func WritePNG(camera render.Camera, filepath string, maxBrightnessPercentile float64) {
 	height := camera.GetViewPlane().VerticalResolution
 	width := camera.GetViewPlane().HorizontalResolution
 	pixels := *camera.GetPixels()
-	weight := 255.0 / findMax(pixels)
+	weight := 255.0 / (maxBrightnessPercentile * findMax(pixels))
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			img.Set(width-x-1, height-y-1, color.NRGBA{
-				R: (uint8)(pixels[x][y][0] * weight),
-				G: (uint8)(pixels[x][y][1] * weight),
-				B: (uint8)(pixels[x][y][2] * weight),
+				R: (uint8)(WeightPixel(pixels[x][y][0], weight)),
+				G: (uint8)(WeightPixel(pixels[x][y][1], weight)),
+				B: (uint8)(WeightPixel(pixels[x][y][2], weight)),
 				A: 255,
 			})
 		}
@@ -45,6 +45,14 @@ func WritePNG(camera render.Camera, filepath string) {
 	if err := f.Close(); err != nil {
 		check(err)
 	}
+}
+
+func WeightPixel(value, weight float64) float64 {
+	newVal := value * weight
+	if newVal > 255.0 {
+		return 255.0
+	}
+	return newVal
 }
 
 func WriteImage(camera render.Camera, filePath string) {

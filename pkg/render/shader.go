@@ -2,7 +2,7 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
-	_ "math"
+	"math"
 )
 
 type Shader interface {
@@ -22,6 +22,31 @@ func (shader *LambertianShader) BRDF(shadeRec *ShadeRec, incidentVector *geometr
 
 func (shader *LambertianShader) Rho(shadeRec *ShadeRec, outVector *geometry.Vector) Color {
 	return ScalarProduct(shader.DiffuseColor, shader.DiffuseReflectionCoefficient)
+}
+
+type GlossySpecular struct {
+	SpecularReflectionCoefficient float64
+	SpecularColor                 Color
+	Exp                           float64
+}
+
+func (shader *GlossySpecular) BRDF(shadeRec *ShadeRec, incidentVector *geometry.Vector, outVector *geometry.Vector) Color {
+	incidentCos := geometry.DotProduct(shadeRec.Normal, *incidentVector)
+	reflectionVector := geometry.Subtract(geometry.ScalarProduct(shadeRec.Normal, 2*incidentCos), *incidentVector)
+	outCos := geometry.DotProduct(reflectionVector, *outVector)
+
+	if outCos > 0.0 {
+		color := ScalarProduct(
+			shader.SpecularColor,
+			math.Pow(outCos, shader.Exp)*shader.SpecularReflectionCoefficient,
+		)
+		return color
+	}
+	return BLACK
+}
+
+func (shader *GlossySpecular) Rho(shadeRec *ShadeRec, outVector *geometry.Vector) Color {
+	return BLACK
 }
 
 type Material interface {
@@ -47,7 +72,38 @@ func (material *MatteMaterial) Shade(shadeRec *ShadeRec) Color {
 		if incidentCos > 0.0 {
 			L = Add(L, ScalarProduct(
 				ElementwiseProduct(
-					material.DiffuseBRDF.BRDF(shadeRec, &wo, &wi),
+					material.DiffuseBRDF.BRDF(shadeRec, &wi, &wo),
+					light.IncidentRadiance(shadeRec),
+				),
+				incidentCos,
+			))
+		}
+	}
+	return L
+}
+
+type PhongMaterial struct {
+	AmbientBRDF *LambertianShader
+	DiffuseBRDF *LambertianShader
+	GlossyBRDF  *GlossySpecular
+}
+
+func (material *PhongMaterial) Shade(shadeRec *ShadeRec) Color {
+	wo := geometry.ScalarProduct(shadeRec.Ray.Vector, -1)
+	L := ElementwiseProduct(
+		material.AmbientBRDF.Rho(shadeRec, &wo),
+		shadeRec.World.AmbientLight.IncidentRadiance(shadeRec),
+	)
+	for _, light := range shadeRec.World.Lights {
+		wi := light.GetDirection(shadeRec)
+		incidentCos := geometry.DotProduct(shadeRec.Normal, wi)
+		if incidentCos > 0.0 {
+			L = Add(L, ScalarProduct(
+				ElementwiseProduct(
+					Add(
+						material.DiffuseBRDF.BRDF(shadeRec, &wi, &wo),
+						material.GlossyBRDF.BRDF(shadeRec, &wi, &wo),
+					),
 					light.IncidentRadiance(shadeRec),
 				),
 				incidentCos,
