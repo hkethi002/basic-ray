@@ -70,13 +70,22 @@ func (material *MatteMaterial) Shade(shadeRec *ShadeRec) Color {
 		wi := light.GetDirection(shadeRec)
 		incidentCos := geometry.DotProduct(shadeRec.Normal, wi)
 		if incidentCos > 0.0 {
-			L = Add(L, ScalarProduct(
-				ElementwiseProduct(
-					material.DiffuseBRDF.BRDF(shadeRec, &wi, &wo),
-					light.IncidentRadiance(shadeRec),
-				),
-				incidentCos,
-			))
+			inShadow := false
+
+			if light.CastsShadows() {
+				shadowRay := geometry.Ray{Origin: shadeRec.HitPoint, Vector: wi}
+				inShadow = light.InShadow(&shadowRay, shadeRec)
+			}
+
+			if !inShadow {
+				L = Add(L, ScalarProduct(
+					ElementwiseProduct(
+						material.DiffuseBRDF.BRDF(shadeRec, &wi, &wo),
+						light.IncidentRadiance(shadeRec),
+					),
+					incidentCos,
+				))
+			}
 		}
 	}
 	return L
@@ -98,16 +107,25 @@ func (material *PhongMaterial) Shade(shadeRec *ShadeRec) Color {
 		wi := light.GetDirection(shadeRec)
 		incidentCos := geometry.DotProduct(shadeRec.Normal, wi)
 		if incidentCos > 0.0 {
-			L = Add(L, ScalarProduct(
-				ElementwiseProduct(
-					Add(
-						material.DiffuseBRDF.BRDF(shadeRec, &wi, &wo),
-						material.GlossyBRDF.BRDF(shadeRec, &wi, &wo),
+			inShadow := false
+
+			if light.CastsShadows() {
+				shadowRay := geometry.Ray{Origin: shadeRec.HitPoint, Vector: wi}
+				inShadow = light.InShadow(&shadowRay, shadeRec)
+			}
+
+			if !inShadow {
+				L = Add(L, ScalarProduct(
+					ElementwiseProduct(
+						Add(
+							material.DiffuseBRDF.BRDF(shadeRec, &wi, &wo),
+							material.GlossyBRDF.BRDF(shadeRec, &wi, &wo),
+						),
+						light.IncidentRadiance(shadeRec),
 					),
-					light.IncidentRadiance(shadeRec),
-				),
-				incidentCos,
-			))
+					incidentCos,
+				))
+			}
 		}
 	}
 	return L

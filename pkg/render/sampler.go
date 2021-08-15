@@ -12,6 +12,7 @@ type Sampler interface {
 	GenerateSamples()
 	SampleUnitSquare() geometry.Point2D
 	SampleUnitCircle() geometry.Point2D
+	SampleHemisphere() geometry.Point
 }
 
 type BaseSampler struct {
@@ -90,10 +91,10 @@ func (sampler *BaseSampler) MapSamplesToCircle() {
 
 func (sampler *BaseSampler) SampleUnitCircle() geometry.Point2D {
 	if sampler.CircleCount%sampler.NumberOfSamples == 0 {
-		sampler.jump = (rand.Int() % sampler.NumberOfSets) * sampler.NumberOfSamples
+		sampler.circleJump = (rand.Int() % sampler.NumberOfSets) * sampler.NumberOfSamples
 	}
 	sampler.CircleCount++
-	return sampler.CircleSamples[sampler.jump+sampler.shuffledIndexes[sampler.jump+(sampler.CircleCount%sampler.NumberOfSamples)]]
+	return sampler.CircleSamples[sampler.circleJump+sampler.shuffledIndexes[sampler.circleJump+(sampler.CircleCount%sampler.NumberOfSamples)]]
 }
 
 func (sampler *BaseSampler) SampleUnitSquare() geometry.Point2D {
@@ -102,6 +103,14 @@ func (sampler *BaseSampler) SampleUnitSquare() geometry.Point2D {
 	}
 	sampler.Count++
 	return sampler.Samples[sampler.jump+sampler.shuffledIndexes[sampler.jump+(sampler.Count%sampler.NumberOfSamples)]]
+}
+
+func (sampler *BaseSampler) SampleHemisphere() geometry.Point {
+	if sampler.HemisphereCount%sampler.NumberOfSamples == 0 {
+		sampler.HemisphereJump = (rand.Int() % sampler.NumberOfSets) * sampler.NumberOfSamples
+	}
+	sampler.HemisphereCount++
+	return sampler.HemisphereSamples[sampler.HemisphereJump+sampler.shuffledIndexes[sampler.HemisphereJump+(sampler.HemisphereCount%sampler.NumberOfSamples)]]
 }
 
 type JitteredPointSampler struct {
@@ -128,6 +137,16 @@ func (sampler *JitteredPointSampler) GenerateSamples() {
 
 func CreateJitteredSampler(numberOfSamples, numberOfSets int, e float64) *JitteredPointSampler {
 	sampler := &JitteredPointSampler{BaseSampler: BaseSampler{NumberOfSamples: numberOfSamples, NumberOfSets: numberOfSets}}
+
+	sampler.ShuffleIndexes()
+	sampler.GenerateSamples()
+	sampler.MapSamplesToCircle()
+	sampler.MapSamplesToHemisphere(e)
+	return sampler
+}
+
+func CreateRegularSampler(numberOfSampler, numberOfSet int, e float64) *RegularSampler {
+	sampler := &RegularSampler{BaseSampler: BaseSampler{NumberOfSamples: 1, NumberOfSets: 1}}
 
 	sampler.ShuffleIndexes()
 	sampler.GenerateSamples()

@@ -19,11 +19,13 @@ type ShadeRec struct {
 
 type GeometricObject interface {
 	Hit(ray *geometry.Ray, tmin *float64, shadeRec *ShadeRec) bool
+	ShadowHit(ray *geometry.Ray, tmin *float64) bool
 	GetMaterial() Material
 }
 
 type Mesh struct {
 	Material Material
+	Shadows  bool
 }
 
 func (mesh *Mesh) GetMaterial() Material {
