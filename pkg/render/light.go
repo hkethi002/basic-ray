@@ -49,19 +49,47 @@ func (lightSource *AmbientLight) InShadow(ray *geometry.Ray, shadeRec *ShadeRec)
 
 type AmbientOccluder struct {
 	Sampler      Sampler
-	MinimumLight Color
+	MinimumLight float64
+	u, v, w      geometry.Vector
 	BasicLight
 }
 
-// func (lightSource *AmbientOccluder) GetDirection(shadeRec *ShadeRec) geometry.Vector {
-// 	return lightSource.Sampler.Sampler
-// }
+func (lightSource *AmbientOccluder) GetDirection(shadeRec *ShadeRec) geometry.Vector {
+	samplePoint := lightSource.Sampler.SampleHemisphere()
+	return geometry.Normalize(geometry.Add(
+		geometry.Add(
+			geometry.ScalarProduct(lightSource.u, samplePoint[0]),
+			geometry.ScalarProduct(lightSource.v, samplePoint[1]),
+		),
+		geometry.ScalarProduct(lightSource.w, samplePoint[2]),
+	))
+}
 
 func (lightSource *AmbientOccluder) IncidentRadiance(shadeRec *ShadeRec) Color {
-	return ScalarProduct(lightSource.Color, lightSource.RadianceScalingFactor)
+	lightSource.w = shadeRec.Normal
+	// Avoid the vector pointing straight up
+	lightSource.v = geometry.Normalize(geometry.CrossProduct(lightSource.w, geometry.Vector{0.0072, 1.0, 00.34}))
+	lightSource.u = geometry.CrossProduct(lightSource.v, lightSource.w)
+
+	shadowRay := geometry.Ray{Origin: shadeRec.HitPoint, Vector: lightSource.GetDirection(shadeRec)}
+
+	if lightSource.InShadow(&shadowRay, shadeRec) {
+		return ScalarProduct(
+			lightSource.Color,
+			lightSource.RadianceScalingFactor*lightSource.MinimumLight,
+		)
+	} else {
+		return ScalarProduct(lightSource.Color, lightSource.RadianceScalingFactor)
+	}
 }
 
 func (lightSource *AmbientOccluder) InShadow(ray *geometry.Ray, shadeRec *ShadeRec) bool {
+	t := math.Inf(1)
+	for _, object := range shadeRec.World.Objects {
+		if object.ShadowHit(ray, &t) {
+			return true
+		}
+	}
 	return false
 }
 

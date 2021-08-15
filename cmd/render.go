@@ -26,7 +26,7 @@ func init() {
 
 func RenderScene(output string, samples int) {
 	objects := make([]render.GeometricObject, 6)
-	objects[0] = &render.Sphere{Center: geometry.Point{0, 25, 0}, Radius: 80, KEpsilon: 0.001}
+	objects[0] = &render.Sphere{Center: geometry.Point{0, -70, 0}, Radius: 80, KEpsilon: 0.001}
 	objects[0].(*render.Sphere).Material = &render.PhongMaterial{
 		AmbientBRDF: &render.LambertianShader{
 			DiffuseReflectionCoefficient: 0.45,
@@ -63,7 +63,7 @@ func RenderScene(output string, samples int) {
 	objects[2] = &render.Plane{Point: geometry.Point{0, -150, 0}, Normal: geometry.Vector{0, 1, 0}, KEpsilon: 0.001}
 	objects[2].(*render.Plane).Material = &render.MatteMaterial{
 		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.45,
+			DiffuseReflectionCoefficient: 0.75,
 			DiffuseColor:                 render.Color{.5, .5, .5},
 		},
 		DiffuseBRDF: &render.LambertianShader{
@@ -71,6 +71,7 @@ func RenderScene(output string, samples int) {
 			DiffuseColor:                 render.Color{.5, .5, .5},
 		},
 	}
+	objects[2].(*render.Plane).Shadows = true
 	objects[3] = &render.Sphere{Center: geometry.Point{-400, -25, 500}, Radius: 80, KEpsilon: 0.001}
 	objects[3].(*render.Sphere).Material = &render.MatteMaterial{
 		AmbientBRDF: &render.LambertianShader{
@@ -147,16 +148,20 @@ func RenderScene(output string, samples int) {
 	light := render.PointLight{
 		Location:   geometry.Point{100, 250, -150},
 		BasicLight: render.BasicLight{Shadows: true, Color: render.WHITE, RadianceScalingFactor: 2.0}}
-	// light := render.DirectionalLight{
-	// 	Direction:  geometry.Vector{0, -1, 0},
-	// 	BasicLight: render.BasicLight{Color: render.WHITE, RadianceScalingFactor: 3.0}}
+	light2 := render.DirectionalLight{
+		Direction:  geometry.Vector{0, -1, 0},
+		BasicLight: render.BasicLight{Color: render.WHITE, RadianceScalingFactor: 1.0}}
 	light.Initialize()
+	light2.Initialize()
 	lightSources = append(lightSources, &light)
+	lightSources = append(lightSources, &light2)
 
 	world := render.World{Camera: &camera, Lights: lightSources, Objects: objects[:5]}
 
-	ambientLight := render.AmbientLight{
-		BasicLight: render.BasicLight{RadianceScalingFactor: 1.0},
+	ambientLight := render.AmbientOccluder{
+		BasicLight:   render.BasicLight{RadianceScalingFactor: 1.0},
+		MinimumLight: 0.0,
+		Sampler:      sampler,
 	}
 	ambientLight.Initialize()
 	world.AmbientLight = &ambientLight
