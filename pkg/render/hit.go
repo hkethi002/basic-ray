@@ -36,7 +36,7 @@ func (plane *Plane) ShadowHit(ray *geometry.Ray, tmin *float64) bool {
 	}
 	t := geometry.DotProduct(geometry.CreateVector(plane.Point, ray.Origin), plane.Normal) / cos
 
-	if t > plane.KEpsilon {
+	if t > plane.KEpsilon && t < *tmin {
 		*tmin = t
 		return true
 	}

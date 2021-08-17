@@ -26,6 +26,8 @@ type GeometricObject interface {
 type Mesh struct {
 	Material Material
 	Shadows  bool
+	Sampler  Sampler // Only used for area light geometries
+	KEpsilon float64 // TODO: Figure out if this can be hard coded into the method
 }
 
 func (mesh *Mesh) GetMaterial() Material {
@@ -33,34 +35,26 @@ func (mesh *Mesh) GetMaterial() Material {
 }
 
 type Plane struct {
-	Point    geometry.Point
-	Normal   geometry.Vector
-	KEpsilon float64 // TODO: Figure out if this can be hard coded into the method
-	Mesh
-}
-
-type Sphere struct {
-	Center   geometry.Point
-	Radius   float64
-	KEpsilon float64 // TODO: Figure out if this can be hard coded into the method
+	Point  geometry.Point
+	Normal geometry.Vector
 	Mesh
 }
 
 type Triangle struct {
-	Id            int
-	Vertex0       geometry.Point
-	Vertex1       geometry.Point
-	Vertex2       geometry.Point
-	Normal        geometry.Vector
-	VertexNormals []geometry.Vector
-	// Albedo are [0, 1] per rgb color
-	DiffuseAlbedo      [3]float64
-	SpecularAlbedo     [3]float64
-	TranslucenseAlbedo [3]float64
-	// What angle the light changes at
-	RefractionIndex float64
+	Vertex                   geometry.Point
+	VectorA, VectorB, Normal geometry.Vector
+	Mesh
+}
 
-	MaterialType int
+type TriangleMesh struct {
+	Triangles []*Triangle
+	Mesh
+}
+
+type Sphere struct {
+	Center geometry.Point
+	Radius float64
+	Mesh
 }
 
 type TextureProperties struct {

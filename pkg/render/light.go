@@ -19,6 +19,21 @@ type LightSource interface {
 	IncidentRadiance(shadeRec *ShadeRec) Color
 	CastsShadows() bool
 	InShadow(ray *geometry.Ray, shadeRec *ShadeRec) bool
+
+	// Needed for area lighting
+	GeometricFactor(shadeRec *ShadeRec) float64
+	PDF(shadeRec *ShadeRec) float64
+}
+
+type PhysicalLightSource interface {
+	GetDirection(shadeRec *ShadeRec) geometry.Vector
+	IncidentRadiance(shadeRec *ShadeRec) Color
+	CastsShadows() bool
+	InShadow(ray *geometry.Ray, shadeRec *ShadeRec) bool
+
+	// Needed for area lighting
+	GeometricFactor(shadeRec *ShadeRec) float64
+	PDF(shadeRec *ShadeRec) float64
 }
 
 type BasicLight struct {
@@ -45,6 +60,14 @@ func (lightSource *AmbientLight) IncidentRadiance(shadeRec *ShadeRec) Color {
 
 func (lightSource *AmbientLight) InShadow(ray *geometry.Ray, shadeRec *ShadeRec) bool {
 	return false
+}
+
+func (lightSource *AmbientLight) GeometricFactor(shadeRec *ShadeRec) float64 {
+	return 1.0
+}
+
+func (lightSource *AmbientLight) PDF(shadeRec *ShadeRec) float64 {
+	return 1.0
 }
 
 type AmbientOccluder struct {
@@ -153,4 +176,10 @@ func (lightSource *DirectionalLight) InShadow(ray *geometry.Ray, shadeRec *Shade
 		}
 	}
 	return false
+}
+
+// pdf is probability density function
+type LightObject interface {
+	SampleSurface() (geometry.Point, geometry.Vector)
+	PDF(shadeRec *ShadeRec) float64
 }
