@@ -26,8 +26,8 @@ func init() {
 	rootCmd.AddCommand(renderCmd)
 }
 
-func RenderScene(output string, samples int) {
-	diskSampler := render.CreateJitteredSampler(samples, 83, 1)
+/*
+
 
 	objects := make([]render.GeometricObject, 6)
 	objects[0] = &obj.Sphere{Center: geometry.Point{0, -100, 0}, Radius: 50, Mesh: render.Mesh{KEpsilon: 0.001}}
@@ -110,6 +110,92 @@ func RenderScene(output string, samples int) {
 		},
 	}
 	objects[5].(*obj.Sphere).Shadows = true
+*/
+
+func RenderScene(output string, samples int) {
+	// Disk for light
+	diskSampler := render.CreateJitteredSampler(samples, 83, 1)
+	emmisiveMaterial := &render.EmmisiveMaterial{
+		RadianceScalingFactor: 5.0,
+		Color:                 render.WHITE,
+	}
+	// disk := obj.CreateRect(geometry.Point{-100, 0, 100}, geometry.Vector{70, 0, 70}, geometry.Vector{0, 100, 0})
+	disk := obj.CreateDisk(geometry.Point{-400, 100, 300}, 100, geometry.Vector{1, 0, -1})
+	disk.Material = emmisiveMaterial
+	disk.Sampler = diskSampler
+	disk.Shadows = false
+
+	// box thin
+	topRect := obj.CreateRect(geometry.Point{0, -50, 0}, geometry.Vector{50, 0, 0}, geometry.Vector{0, 0, 50})
+	topRect.Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.45,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+	}
+
+	rect1 := obj.CreateRect(geometry.Point{0, -150, 0}, geometry.Vector{0, 100, 0}, geometry.Vector{0, 0, 50})
+	rect1.Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.45,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+	}
+	rect2 := obj.CreateRect(geometry.Point{0, -150, 50}, geometry.Vector{0, 100, 0}, geometry.Vector{50, 0, 0})
+	rect2.Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.45,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+	}
+	rect3 := obj.CreateRect(geometry.Point{50, -150, 50}, geometry.Vector{0, 100, 0}, geometry.Vector{0, 0, -50})
+	rect3.Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.45,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+	}
+	rect4 := obj.CreateRect(geometry.Point{50, -150, 0}, geometry.Vector{0, 100, 0}, geometry.Vector{-50, 0, 0})
+	rect4.Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.45,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 1, 0},
+		},
+	}
+	plane := &render.Plane{Point: geometry.Point{0, -150, 0}, Normal: geometry.Vector{0, 1, 0}, Mesh: render.Mesh{KEpsilon: 0.001}}
+	plane.Material = &render.MatteMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.45,
+			DiffuseColor:                 render.Color{1, 1, 1},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.65,
+			DiffuseColor:                 render.Color{1, 1, 1},
+		},
+	}
+	plane.Shadows = true
+
+	objects := []render.GeometricObject{disk, rect1, rect2, rect3, rect4, plane, topRect}
 
 	var sampler render.Sampler
 	if samples == 1 {
@@ -141,13 +227,13 @@ func RenderScene(output string, samples int) {
 		Eye:                 geometry.Point{0, 25, -500},
 		UpVector:            geometry.Vector{0, 1, 0},
 		BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-		Zoom:                1.0,
+		Zoom:                0.5,
 	}
 
 	camera.Initialize()
 
 	var lightSources []render.LightSource
-	light := lighting.AreaLight{Object: objects[3].(*obj.Disk), Material: emmisiveMaterial}
+	light := lighting.AreaLight{Object: disk, Material: emmisiveMaterial}
 	light.Shadows = true
 	// light := render.PointLight{
 	// 	Location:   geometry.Point{100, 250, -150},
@@ -159,7 +245,7 @@ func RenderScene(output string, samples int) {
 	// light2.Initialize()
 	lightSources = append(lightSources, &light)
 
-	world := render.World{Camera: &camera, Lights: lightSources, Objects: objects[2:4]}
+	world := render.World{Camera: &camera, Lights: lightSources, Objects: objects}
 
 	world.Shading = "area"
 	ambientLight := render.AmbientLight{

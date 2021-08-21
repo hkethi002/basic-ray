@@ -69,8 +69,8 @@ func (disk *Disk) SampleSurface() (geometry.Point, geometry.Vector) {
 	return geometry.Translate(
 		disk.Center,
 		geometry.Add(
-			geometry.ScalarProduct(disk.u, samplePoint[0]),
-			geometry.ScalarProduct(disk.v, samplePoint[1]),
+			geometry.ScalarProduct(disk.u, samplePoint[0]*disk.Radius),
+			geometry.ScalarProduct(disk.v, samplePoint[1]*disk.Radius),
 		),
 	), disk.Normal
 }
@@ -83,7 +83,7 @@ func CreateDisk(center geometry.Point, radius float64, normal geometry.Vector) *
 	disk := Disk{Center: center, Radius: radius, Normal: normal, Mesh: render.Mesh{KEpsilon: 0.0001}}
 
 	disk.inverseArea = 1.0 / (render.PI * radius * radius)
-	disk.u = geometry.Normalize(geometry.Vector{center[0], center[1], (0 - normal[0]*center[0] - normal[1]*center[1]) / normal[2]})
+	disk.u = geometry.Normalize(geometry.CrossProduct(normal, geometry.Normalize(geometry.Vector{1, 100, -1})))
 	disk.v = geometry.Normalize(geometry.CrossProduct(disk.u, normal))
 
 	return &disk
