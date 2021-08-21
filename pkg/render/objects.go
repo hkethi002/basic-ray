@@ -51,12 +51,6 @@ type TriangleMesh struct {
 	Mesh
 }
 
-type Sphere struct {
-	Center geometry.Point
-	Radius float64
-	Mesh
-}
-
 type TextureProperties struct {
 	DiffuseAlbedo      [3]float64 `json:"diffuse"`
 	SpecularAlbedo     [3]float64 `json:"specular"`

@@ -28,12 +28,10 @@ func init() {
 
 func RenderScene(output string, samples int) {
 	diskSampler := render.CreateJitteredSampler(samples, 83, 1)
-	diskSampler.GenerateSamples()
-	diskSampler.MapSamplesToCircle()
 
 	objects := make([]render.GeometricObject, 6)
-	objects[0] = &render.Sphere{Center: geometry.Point{0, -70, 0}, Radius: 10, Mesh: render.Mesh{KEpsilon: 0.001}}
-	objects[0].(*render.Sphere).Material = &render.PhongMaterial{
+	objects[0] = &obj.Sphere{Center: geometry.Point{0, -100, 0}, Radius: 50, Mesh: render.Mesh{KEpsilon: 0.001}}
+	objects[0].(*obj.Sphere).Material = &render.PhongMaterial{
 		AmbientBRDF: &render.LambertianShader{
 			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{1, 0, 1},
@@ -48,9 +46,9 @@ func RenderScene(output string, samples int) {
 			Exp:                           10,
 		},
 	}
-	objects[0].(*render.Sphere).Shadows = true
-	objects[1] = &render.Sphere{Center: geometry.Point{230, 30, 0}, Radius: 60, Mesh: render.Mesh{KEpsilon: 0.001}}
-	objects[1].(*render.Sphere).Material = &render.PhongMaterial{
+	objects[0].(*obj.Sphere).Shadows = true
+	objects[1] = &obj.Sphere{Center: geometry.Point{230, 30, 0}, Radius: 60, Mesh: render.Mesh{KEpsilon: 0.001}}
+	objects[1].(*obj.Sphere).Material = &render.PhongMaterial{
 		AmbientBRDF: &render.LambertianShader{
 			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{1, 1, 0},
@@ -65,7 +63,7 @@ func RenderScene(output string, samples int) {
 			Exp:                           100,
 		},
 	}
-	objects[1].(*render.Sphere).Shadows = true
+	objects[1].(*obj.Sphere).Shadows = true
 	objects[2] = &render.Plane{Point: geometry.Point{0, -150, 0}, Normal: geometry.Vector{0, 1, 0}, Mesh: render.Mesh{KEpsilon: 0.001}}
 	objects[2].(*render.Plane).Material = &render.MatteMaterial{
 		AmbientBRDF: &render.LambertianShader{
@@ -88,8 +86,8 @@ func RenderScene(output string, samples int) {
 	objects[3].(*obj.Disk).Sampler = diskSampler
 	objects[3].(*obj.Disk).Shadows = false
 
-	objects[4] = &render.Sphere{Center: geometry.Point{300, 150, 500}, Radius: 80, Mesh: render.Mesh{KEpsilon: 0.001}}
-	objects[4].(*render.Sphere).Material = &render.MatteMaterial{
+	objects[4] = &obj.Sphere{Center: geometry.Point{300, 150, 500}, Radius: 80, Mesh: render.Mesh{KEpsilon: 0.001}}
+	objects[4].(*obj.Sphere).Material = &render.MatteMaterial{
 		AmbientBRDF: &render.LambertianShader{
 			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{1, 0, 0},
@@ -99,9 +97,9 @@ func RenderScene(output string, samples int) {
 			DiffuseColor:                 render.Color{1, 1, 1},
 		},
 	}
-	objects[4].(*render.Sphere).Shadows = true
-	objects[5] = &render.Sphere{Center: geometry.Point{100, -50, -190}, Radius: 80, Mesh: render.Mesh{KEpsilon: 0.001}}
-	objects[5].(*render.Sphere).Material = &render.MatteMaterial{
+	objects[4].(*obj.Sphere).Shadows = true
+	objects[5] = &obj.Sphere{Center: geometry.Point{100, -50, -190}, Radius: 80, Mesh: render.Mesh{KEpsilon: 0.001}}
+	objects[5].(*obj.Sphere).Material = &render.MatteMaterial{
 		AmbientBRDF: &render.LambertianShader{
 			DiffuseReflectionCoefficient: 0.45,
 			DiffuseColor:                 render.Color{1, 0.5, 0.5},
@@ -111,7 +109,7 @@ func RenderScene(output string, samples int) {
 			DiffuseColor:                 render.Color{1, 0.5, 0.5},
 		},
 	}
-	objects[5].(*render.Sphere).Shadows = true
+	objects[5].(*obj.Sphere).Shadows = true
 
 	var sampler render.Sampler
 	if samples == 1 {
@@ -161,7 +159,7 @@ func RenderScene(output string, samples int) {
 	// light2.Initialize()
 	lightSources = append(lightSources, &light)
 
-	world := render.World{Camera: &camera, Lights: lightSources, Objects: objects[:4]}
+	world := render.World{Camera: &camera, Lights: lightSources, Objects: objects[2:4]}
 
 	world.Shading = "area"
 	ambientLight := render.AmbientLight{
