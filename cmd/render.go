@@ -6,27 +6,34 @@ import (
 	obj "basic-ray/pkg/objects"
 	render "basic-ray/pkg/render"
 	sceneIo "basic-ray/pkg/scene"
+
+	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/pixelgl"
 	"github.com/spf13/cobra"
+	"time"
+	"fmt"
 )
 
 func init() {
 	var output string
 	var samples int
+	var display bool
 
 	var renderCmd = &cobra.Command{
 		Use:   "render",
 		Short: "Render a scene",
 		// Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			RenderScene(output, samples)
+			RenderScene(output, samples, display)
 		},
 	}
 	renderCmd.Flags().StringVarP(&output, "output", "o", "output.ppm", "output file name")
 	renderCmd.Flags().IntVarP(&samples, "samples", "s", 1, "number of ray samples per pixel")
+	renderCmd.Flags().BoolVarP(&display, "display", "d", false, "display rendering in progress")
 	rootCmd.AddCommand(renderCmd)
 }
 
-func RenderScene(output string, samples int) {
+func RenderScene(output string, samples int, display bool) {
 	diskSampler := render.CreateJitteredSampler(samples, 83, 1)
 	diskSampler.GenerateSamples()
 	diskSampler.MapSamplesToCircle()
@@ -119,32 +126,33 @@ func RenderScene(output string, samples int) {
 	} else {
 		sampler = render.CreateJitteredSampler(samples, 83, 1)
 	}
-	// viewPlane := render.ViewPlane{HorizontalResolution: 4096, VerticalResolution: 2160, PixelSize: 0.25, Gamma: 1, Sampler: sampler}
-	viewPlane := render.ViewPlane{HorizontalResolution: 800, VerticalResolution: 800, PixelSize: 0.5, Gamma: 1, Sampler: sampler}
+	viewPlane := render.ViewPlane{HorizontalResolution: 4096, VerticalResolution: 2160, PixelSize: 0.25, Gamma: 1, Sampler: sampler}
+	// viewPlane := render.ViewPlane{HorizontalResolution: 800, VerticalResolution: 800, PixelSize: 0.5, Gamma: 1, Sampler: sampler}
 
 	pixels := make([][]render.Color, viewPlane.HorizontalResolution)
 	for i := range pixels {
 		pixels[i] = make([]render.Color, viewPlane.VerticalResolution)
 	}
-	// camera := render.ThinLensCamera{
-	// 	DistanceToViewPlane: 300,
-	// 	LookPoint:           geometry.Point{0, 25, 0},
-	// 	Eye:                 geometry.Point{0, 25, -500},
-	// 	UpVector:            geometry.Vector{0, 1, 0},
-	// 	BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-	// 	FocalDistance:       500,
-	// 	Zoom:                1,
-	// 	LensRadius:          10,
-	// 	Sampler:             sampler,
-	// }
-	camera := render.PinholeCamera{
+	camera := render.ThinLensCamera{
 		DistanceToViewPlane: 300,
 		LookPoint:           geometry.Point{0, 25, 0},
 		Eye:                 geometry.Point{0, 25, -500},
 		UpVector:            geometry.Vector{0, 1, 0},
 		BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-		Zoom:                1.0,
+		FocalDistance:       500,
+		Zoom:                1,
+		LensRadius:          10,
+		Sampler:             sampler,
 	}
+	// camera := render.PinholeCamera{
+	// 	DistanceToViewPlane: 300,
+	// 	LookPoint:           geometry.Point{0, 25, 0},
+	// 	Eye:                 geometry.Point{0, 25, -500},
+	// 	UpVector:            geometry.Vector{0, 1, 0},
+	// 	BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
+	// 	Zoom:                1.0,
+	// }
+	camera.Display = true
 
 	camera.Initialize()
 
@@ -172,7 +180,58 @@ func RenderScene(output string, samples int) {
 	ambientLight.Initialize()
 	world.AmbientLight = &ambientLight
 
-	render.MultiThreadedMain(&world, samples)
-
+	if display {
+		go render.MultiThreadedMain(&world, samples)
+		pixelgl.Run(displayRender(&camera))
+	} else {
+		render.MultiThreadedMain(&world, samples)
+	}
 	sceneIo.WritePNG(&camera, output, 0.9)
+
 }
+
+
+func displayRender(camera render.Camera) func() {
+	return func() {
+		cfg := pixelgl.WindowConfig{
+			Title:  "Pixel Rocks!",
+			Bounds: pixel.R(0, 0, float64(camera.GetViewPlane().HorizontalResolution), float64(camera.GetViewPlane().VerticalResolution)),
+			VSync: true,
+		}
+		win, err := pixelgl.NewWindow(cfg)
+		if err != nil {
+			panic(err)
+		}
+		var (
+			frames = 0
+			second = time.Tick(time.Second)
+		)
+
+		for !win.Closed() {
+			win.Update()
+			win.Canvas().SetPixels(camera.GetDisplayPixels())
+
+			frames++
+			select {
+			case <-second:
+				win.SetTitle(fmt.Sprintf("%s | FPS: %d ", cfg.Title, frames))
+				frames = 0
+			default:
+			}
+		}
+	}
+}
+
+
+func checkValues(x []uint8) (uint8, int) {
+	var v uint8
+	j := -1
+	for i := 0; i<len(x); i++ {
+		if x[i] > v {
+			v = x[i]
+			j = i
+		}
+	}
+	return v, j
+}
+

@@ -2,18 +2,22 @@ package render
 
 import (
 	geometry "basic-ray/pkg/geometry"
+	"math"
 )
 
 type Camera interface {
 	GetRays(i, j, samples int) []*geometry.Ray
 	GetPixels() *[][]Color
 	SetPixel(i, j int, color Color)
+	GetDisplayPixels() []uint8
 	GetViewPlane() ViewPlane
 }
 
 type BaseCamera struct {
 	ViewPlane ViewPlane
 	Pixels    *[][]Color
+	Display   bool
+	DisplayPixels []uint8
 }
 
 type OrthoCamera struct {
@@ -74,11 +78,22 @@ func (camera *BaseCamera) GetPixels() *[][]Color {
 	return camera.Pixels
 }
 
+func (camera *BaseCamera) GetDisplayPixels() []uint8 {
+	return camera.DisplayPixels
+}
+
 func (camera *BaseCamera) SetPixel(i, j int, color Color) {
 	if camera.ViewPlane.Gamma != 1 {
 		color = Pow(color, camera.ViewPlane.InverseGamma)
 	}
 	(*camera.Pixels)[i][j] = color
+	if camera.Display {
+		offset := ((camera.ViewPlane.HorizontalResolution - i - 1) + (camera.ViewPlane.HorizontalResolution * j) )* 4
+		(camera.DisplayPixels)[offset] = uint8(math.Min(255, color[0] * 25))
+		(camera.DisplayPixels)[offset+1] = uint8(math.Min(255, color[1] * 25))
+		(camera.DisplayPixels)[offset+2] = uint8(math.Min(255, color[2] * 25))
+		(camera.DisplayPixels)[offset+3] = 255
+	}
 }
 
 /*
@@ -164,6 +179,9 @@ func (camera *PinholeCamera) Initialize() {
 	camera.w = geometry.Normalize(geometry.CreateVector(camera.Eye, camera.LookPoint))
 	camera.u = geometry.Normalize(geometry.CrossProduct(camera.UpVector, camera.w))
 	camera.v = geometry.CrossProduct(camera.w, camera.u)
+	if camera.Display {
+		camera.DisplayPixels = make([]uint8, 4 * camera.ViewPlane.HorizontalResolution * camera.ViewPlane.VerticalResolution)
+	}
 }
 
 func (camera *PinholeCamera) GetRay(i, j int, jitter geometry.Point2D) *geometry.Ray {
@@ -211,6 +229,9 @@ func (camera *ThinLensCamera) Initialize() {
 	camera.w = geometry.Normalize(geometry.CreateVector(camera.Eye, camera.LookPoint))
 	camera.u = geometry.Normalize(geometry.CrossProduct(camera.UpVector, camera.w))
 	camera.v = geometry.CrossProduct(camera.w, camera.u)
+	if camera.Display {
+		camera.DisplayPixels = make([]uint8, 4 * camera.ViewPlane.HorizontalResolution * camera.ViewPlane.VerticalResolution)
+	}
 }
 
 func (camera *ThinLensCamera) GetRay(i, j int, jitter geometry.Point2D) *geometry.Ray {
