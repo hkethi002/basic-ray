@@ -210,25 +210,25 @@ func RenderScene(output string, samples int) {
 	for i := range pixels {
 		pixels[i] = make([]render.Color, viewPlane.VerticalResolution)
 	}
-	// camera := render.ThinLensCamera{
-	// 	DistanceToViewPlane: 300,
-	// 	LookPoint:           geometry.Point{0, 25, 0},
-	// 	Eye:                 geometry.Point{0, 25, -500},
-	// 	UpVector:            geometry.Vector{0, 1, 0},
-	// 	BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-	// 	FocalDistance:       500,
-	// 	Zoom:                1,
-	// 	LensRadius:          10,
-	// 	Sampler:             sampler,
-	// }
-	camera := render.PinholeCamera{
+	camera := render.ThinLensCamera{
 		DistanceToViewPlane: 300,
 		LookPoint:           geometry.Point{0, 25, 0},
 		Eye:                 geometry.Point{0, 25, -500},
 		UpVector:            geometry.Vector{0, 1, 0},
 		BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-		Zoom:                0.5,
+		FocalDistance:       500,
+		Zoom:                1,
+		LensRadius:          10,
+		Sampler:             sampler,
 	}
+	// camera := render.PinholeCamera{
+	// 	DistanceToViewPlane: 300,
+	// 	LookPoint:           geometry.Point{0, 25, 0},
+	// 	Eye:                 geometry.Point{0, 25, -500},
+	// 	UpVector:            geometry.Vector{0, 1, 0},
+	// 	BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
+	// 	Zoom:                0.5,
+	// }
 
 	camera.Initialize()
 
