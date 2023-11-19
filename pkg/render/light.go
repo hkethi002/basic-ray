@@ -158,6 +158,14 @@ type DirectionalLight struct {
 	BasicLight
 }
 
+func (lightSource *DirectionalLight) PDF(shadeRec *ShadeRec) float64 {
+	return 1.0
+}
+
+func (lightSource *DirectionalLight) GeometricFactor(shadeRec *ShadeRec) float64 {
+	return 1.0
+}
+
 func (lightSource *DirectionalLight) GetDirection(shadeRec *ShadeRec) geometry.Vector {
 	return geometry.ScalarProduct(lightSource.Direction, -1)
 }

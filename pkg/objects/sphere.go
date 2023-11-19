@@ -70,3 +70,12 @@ func (sphere *Sphere) ShadowHit(ray *geometry.Ray, tmin *float64) bool {
 	}
 	return false
 }
+
+func CreateSphere(center geometry.Point, radius float64) *Sphere {
+	sphere := Sphere{Center: center, Radius: radius, Mesh: render.Mesh{KEpsilon: 0.0001}}
+	return &sphere
+}
+
+func (sphere *Sphere) SetLocation(location geometry.Point) {
+	sphere.Center = location
+}
