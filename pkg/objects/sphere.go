@@ -7,8 +7,9 @@ import (
 )
 
 type Sphere struct {
-	Center geometry.Point
-	Radius float64
+	Center      geometry.Point
+	Radius      float64
+	inverseArea float64
 	render.Mesh
 }
 
@@ -69,4 +70,18 @@ func (sphere *Sphere) ShadowHit(ray *geometry.Ray, tmin *float64) bool {
 		return true
 	}
 	return false
+}
+
+func (sphere *Sphere) SampleSurface() (geometry.Point, geometry.Vector) {
+	samplePoint := sphere.Sampler.SampleHemisphere()
+	normal := geometry.CreateVector(samplePoint, sphere.Center)
+	samplePoint = geometry.Translate(samplePoint, normal)
+	return samplePoint, normal
+}
+
+func (sphere *Sphere) PDF(shadeRec *render.ShadeRec) float64 {
+	if sphere.inverseArea == 0.0 {
+		sphere.inverseArea = 1.0 / (4 * render.PI * sphere.Radius * sphere.Radius)
+	}
+	return sphere.inverseArea
 }
