@@ -26,92 +26,6 @@ func init() {
 	rootCmd.AddCommand(renderCmd)
 }
 
-/*
-
-
-	objects := make([]render.GeometricObject, 6)
-	objects[0] = &obj.Sphere{Center: geometry.Point{0, -100, 0}, Radius: 50, Mesh: render.Mesh{KEpsilon: 0.001}}
-	objects[0].(*obj.Sphere).Material = &render.PhongMaterial{
-		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.45,
-			DiffuseColor:                 render.Color{1, 0, 1},
-		},
-		DiffuseBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.65,
-			DiffuseColor:                 render.Color{1, 0, 1},
-		},
-		GlossyBRDF: &render.GlossySpecular{
-			SpecularReflectionCoefficient: 0.25,
-			SpecularColor:                 render.Color{1, 0, 1},
-			Exp:                           10,
-		},
-	}
-	objects[0].(*obj.Sphere).Shadows = true
-	objects[1] = &obj.Sphere{Center: geometry.Point{230, 30, 0}, Radius: 60, Mesh: render.Mesh{KEpsilon: 0.001}}
-	objects[1].(*obj.Sphere).Material = &render.PhongMaterial{
-		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.45,
-			DiffuseColor:                 render.Color{1, 1, 0},
-		},
-		DiffuseBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.6,
-			DiffuseColor:                 render.Color{1, 1, 0},
-		},
-		GlossyBRDF: &render.GlossySpecular{
-			SpecularReflectionCoefficient: 0.2,
-			SpecularColor:                 render.Color{1, 1, 1},
-			Exp:                           100,
-		},
-	}
-	objects[1].(*obj.Sphere).Shadows = true
-	objects[2] = &render.Plane{Point: geometry.Point{0, -150, 0}, Normal: geometry.Vector{0, 1, 0}, Mesh: render.Mesh{KEpsilon: 0.001}}
-	objects[2].(*render.Plane).Material = &render.MatteMaterial{
-		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.45,
-			DiffuseColor:                 render.Color{1, 1, 1},
-		},
-		DiffuseBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.65,
-			DiffuseColor:                 render.Color{1, 1, 1},
-		},
-	}
-	objects[2].(*render.Plane).Shadows = true
-	objects[3] = obj.CreateDisk(geometry.Point{-400, 100, 300}, 100, geometry.Vector{1, 0, -1})
-
-	emmisiveMaterial := &render.EmmisiveMaterial{
-		RadianceScalingFactor: 10.0,
-		Color:                 render.WHITE,
-	}
-	objects[3].(*obj.Disk).Material = emmisiveMaterial
-	objects[3].(*obj.Disk).Sampler = diskSampler
-	objects[3].(*obj.Disk).Shadows = false
-
-	objects[4] = &obj.Sphere{Center: geometry.Point{300, 150, 500}, Radius: 80, Mesh: render.Mesh{KEpsilon: 0.001}}
-	objects[4].(*obj.Sphere).Material = &render.MatteMaterial{
-		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.45,
-			DiffuseColor:                 render.Color{1, 0, 0},
-		},
-		DiffuseBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.65,
-			DiffuseColor:                 render.Color{1, 1, 1},
-		},
-	}
-	objects[4].(*obj.Sphere).Shadows = true
-	objects[5] = &obj.Sphere{Center: geometry.Point{100, -50, -190}, Radius: 80, Mesh: render.Mesh{KEpsilon: 0.001}}
-	objects[5].(*obj.Sphere).Material = &render.MatteMaterial{
-		AmbientBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.45,
-			DiffuseColor:                 render.Color{1, 0.5, 0.5},
-		},
-		DiffuseBRDF: &render.LambertianShader{
-			DiffuseReflectionCoefficient: 0.65,
-			DiffuseColor:                 render.Color{1, 0.5, 0.5},
-		},
-	}
-	objects[5].(*obj.Sphere).Shadows = true
-*/
-
 func RenderScene(output string, samples int) {
 	// Disk for light
 	diskSampler := render.CreateJitteredSampler(samples, 83, 1)
@@ -195,7 +109,25 @@ func RenderScene(output string, samples int) {
 	}
 	plane.Shadows = true
 
-	objects := []render.GeometricObject{disk, rect1, rect2, rect3, rect4, plane, topRect}
+	sphere1 := &obj.Sphere{Center: geometry.Point{-300, 0, -200}, Radius: 100}
+	sphere1.Material = &render.PhongMaterial{
+		AmbientBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.25,
+			DiffuseColor:                 render.Color{3, 0, 3},
+		},
+		DiffuseBRDF: &render.LambertianShader{
+			DiffuseReflectionCoefficient: 0.45,
+			DiffuseColor:                 render.Color{3, 0, 3},
+		},
+		GlossyBRDF: &render.GlossySpecular{
+			SpecularReflectionCoefficient: 0.75,
+			SpecularColor:                 render.Color{2, 0.5, 2},
+			Exp:                           10,
+		},
+	}
+	sphere1.Shadows = true
+
+	objects := []render.GeometricObject{disk, rect1, rect2, rect3, rect4, plane, topRect, sphere1}
 
 	var sampler render.Sampler
 	if samples == 1 {
@@ -204,46 +136,39 @@ func RenderScene(output string, samples int) {
 		sampler = render.CreateJitteredSampler(samples, 83, 1)
 	}
 	// viewPlane := render.ViewPlane{HorizontalResolution: 4096, VerticalResolution: 2160, PixelSize: 0.25, Gamma: 1, Sampler: sampler}
-	viewPlane := render.ViewPlane{HorizontalResolution: 800, VerticalResolution: 800, PixelSize: 0.5, Gamma: 1, Sampler: sampler}
+	viewPlane := render.ViewPlane{HorizontalResolution: 3200, VerticalResolution: 1600, PixelSize: 0.25, Gamma: 1, Sampler: sampler}
 
 	pixels := make([][]render.Color, viewPlane.HorizontalResolution)
 	for i := range pixels {
 		pixels[i] = make([]render.Color, viewPlane.VerticalResolution)
 	}
 	camera := render.ThinLensCamera{
-		DistanceToViewPlane: 300,
-		LookPoint:           geometry.Point{0, 25, 0},
-		Eye:                 geometry.Point{0, 25, -500},
+		DistanceToViewPlane: 200,
+		LookPoint:           geometry.Point{0, 25, -100},
+		Eye:                 geometry.Point{0, 25, -600},
 		UpVector:            geometry.Vector{0, 1, 0},
 		BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-		FocalDistance:       500,
+		FocalDistance:       300,
 		Zoom:                1,
-		LensRadius:          10,
+		LensRadius:          2.5,
 		Sampler:             sampler,
 	}
-	// camera := render.PinholeCamera{
-	// 	DistanceToViewPlane: 300,
-	// 	LookPoint:           geometry.Point{0, 25, 0},
-	// 	Eye:                 geometry.Point{0, 25, -500},
-	// 	UpVector:            geometry.Vector{0, 1, 0},
-	// 	BaseCamera:          render.BaseCamera{ViewPlane: viewPlane, Pixels: &pixels},
-	// 	Zoom:                0.5,
-	// }
 
 	camera.Initialize()
 
 	var lightSources []render.LightSource
 	light := lighting.AreaLight{Object: disk, Material: emmisiveMaterial}
 	light.Shadows = true
-	// light := render.PointLight{
-	// 	Location:   geometry.Point{100, 250, -150},
-	// 	BasicLight: render.BasicLight{Shadows: true, Color: render.WHITE, RadianceScalingFactor: 2.0}}
-	// light2 := render.DirectionalLight{
-	// 	Direction:  geometry.Vector{0, -1, 0},
-	// 	BasicLight: render.BasicLight{Color: render.WHITE, RadianceScalingFactor: 1.0}}
-	// light.Initialize()
-	// light2.Initialize()
+	// light := render.pointlight{
+	// 	location:   geometry.point{100, 250, -150},
+	// 	basiclight: render.basiclight{shadows: true, color: render.white, radiancescalingfactor: 2.0}}
+	light2 := render.PointLight{
+		Location:   geometry.Point{0, 25, -300},
+		BasicLight: render.BasicLight{Color: render.WHITE, RadianceScalingFactor: 2.0}}
+	light.Initialize()
+	light2.Initialize()
 	lightSources = append(lightSources, &light)
+	lightSources = append(lightSources, &light2)
 
 	world := render.World{Camera: &camera, Lights: lightSources, Objects: objects}
 

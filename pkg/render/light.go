@@ -153,6 +153,14 @@ func (lightSource *PointLight) InShadow(ray *geometry.Ray, shadeRec *ShadeRec) b
 	return false
 }
 
+func (lightSource *PointLight) GeometricFactor(shadeRec *ShadeRec) float64 {
+	return 1
+}
+
+func (lightSource *PointLight) PDF(shadeRec *ShadeRec) float64 {
+	return 1
+}
+
 type DirectionalLight struct {
 	Direction geometry.Vector
 	BasicLight
@@ -176,6 +184,14 @@ func (lightSource *DirectionalLight) InShadow(ray *geometry.Ray, shadeRec *Shade
 		}
 	}
 	return false
+}
+
+func (lightSource *DirectionalLight) GeometricFactor(shadeRec *ShadeRec) float64 {
+	return 1
+}
+
+func (lightSource *DirectionalLight) PDF(shadeRec *ShadeRec) float64 {
+	return 1
 }
 
 // pdf is probability density function

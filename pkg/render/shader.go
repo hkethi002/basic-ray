@@ -162,6 +162,14 @@ func (material *PhongMaterial) Shade(shadeRec *ShadeRec) Color {
 	return L
 }
 
+const PHONG_MULTIPLIER = 1.0
+
+func scaleColor(c Color) {
+	c[0] = c[0] * PHONG_MULTIPLIER
+	c[1] = c[1] * PHONG_MULTIPLIER
+	c[2] = c[2] * PHONG_MULTIPLIER
+}
+
 func (material *PhongMaterial) AreaLightShade(shadeRec *ShadeRec) Color {
 	wo := geometry.ScalarProduct(shadeRec.Ray.Vector, -1)
 	L := ElementwiseProduct(
@@ -193,6 +201,7 @@ func (material *PhongMaterial) AreaLightShade(shadeRec *ShadeRec) Color {
 			}
 		}
 	}
+	scaleColor(L)
 	return L
 }
 
